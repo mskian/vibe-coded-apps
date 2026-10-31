@@ -1,4 +1,3 @@
-
 name: Verify APKs and Update README
 
 on:
@@ -7,6 +6,7 @@ on:
       - main
     paths:
       - "apks/**"
+      - "app-descriptions.json"
       - ".github/workflows/verify-apks.yml"
 
   workflow_dispatch:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   verify-and-update:
-    name: Verify APKs and generate README cards
+    name: Verify APKs and generate README table
     runs-on: ubuntu-latest
 
     steps:
@@ -69,13 +69,50 @@ jobs:
           "$APKSIGNER" version
           "$AAPT" version
 
-      # 5. Verify APKs and generate README cards
-      - name: Verify APKs and generate README cards
+      # 5. Validate app descriptions
+      - name: Validate app descriptions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f app-descriptions.json ]]; then
+            echo "::error::app-descriptions.json was not found"
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("app-descriptions.json")
+
+          try:
+              data = json.loads(path.read_text(encoding="utf-8"))
+          except json.JSONDecodeError as error:
+              raise SystemExit(f"Invalid app-descriptions.json: {error}")
+
+          if not isinstance(data, dict):
+              raise SystemExit("app-descriptions.json must contain a JSON object")
+
+          for app, description in data.items():
+              if not isinstance(app, str) or not isinstance(description, str):
+                  raise SystemExit(
+                      "Each app description must be a string key and string value"
+                  )
+              if not description.strip():
+                  raise SystemExit(f"Description is empty for app: {app}")
+
+          print(f"Validated descriptions for {len(data)} apps.")
+          PY
+
+      # 6. Verify APK signatures and generate README table
+      - name: Verify APKs and generate README table
         shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
         run: |
           set -euo pipefail
+
           shopt -s nullglob
 
           apks=(apks/*.apk)
@@ -85,7 +122,7 @@ jobs:
             exit 1
           fi
 
-          APK_HTML="$RUNNER_TEMP/apk-cards.html"
+          APK_TABLE="$RUNNER_TEMP/apk-table.md"
           SUMMARY="$RUNNER_TEMP/apk-summary.md"
 
           EXPECTED="${EXPECTED_CERT_SHA256:-}"
@@ -93,12 +130,10 @@ jobs:
           EXPECTED="${EXPECTED// /}"
           EXPECTED="${EXPECTED,,}"
 
-          failed=0
+          echo "| App | Description | Version | Signing certificate SHA-256 | Download |" > "$APK_TABLE"
+          echo "|---|---|---|---|---|" >> "$APK_TABLE"
 
-          # Start responsive app card layout
-          cat > "$APK_HTML" <<'HTML'
-          <div class="apk-grid">
-          HTML
+          failed=0
 
           for apk in "${apks[@]}"; do
             filename="$(basename "$apk")"
@@ -108,41 +143,50 @@ jobs:
             echo "Verifying: $filename"
             echo "========================================"
 
-            # App metadata
+            # App name mapping
             case "$filename" in
               fithr-release-signed.apk)
                 app="FitHR"
-                description="Heart-rate companion and monitoring tools."
                 ;;
               sancraft-release-signed.apk)
                 app="SanCraft"
-                description="Create and customize quote and kavithai images."
                 ;;
               randomwords-release-signed.apk)
                 app="Random Words"
-                description="Discover a random word and its meaning."
                 ;;
               tamilsms-release-signed.apk)
                 app="Tamil SMS"
-                description="Tamil words and message inspiration."
                 ;;
               fitsteps-release-signed.apk)
                 app="Fitsteps"
-                description="Step tracking and activity tools."
                 ;;
               sanfit-release-signed.apk)
                 app="SanFit"
-                description="Fitness and activity companion."
                 ;;
               *)
                 app="${filename%.apk}"
-                description="Android application."
                 ;;
             esac
 
-            # Extract APK metadata
+            # Load description from app-descriptions.json.
+            # Use a default description if the app is not listed.
+            description="$(
+              python3 - "$app" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          app = sys.argv[1]
+          descriptions = json.loads(
+              Path("app-descriptions.json").read_text(encoding="utf-8")
+          )
+
+          print(descriptions.get(app, "Android application."))
+          PY
+            )"
+
+            # Extract APK version
             version="unknown"
-            app_label="$app"
 
             if "$AAPT" dump badging "$apk" \
                 > "$RUNNER_TEMP/badging.txt" 2>/dev/null; then
@@ -154,19 +198,8 @@ jobs:
                 head -n 1
               )"
 
-              extracted_label="$(
-                sed -n \
-                  "s/^application-label:'\(.*\)'$/\1/p" \
-                  "$RUNNER_TEMP/badging.txt" |
-                head -n 1
-              )"
-
               if [[ -n "$extracted_version" ]]; then
                 version="$extracted_version"
-              fi
-
-              if [[ -n "$extracted_label" ]]; then
-                app_label="$extracted_label"
               fi
             fi
 
@@ -211,54 +244,22 @@ jobs:
               continue
             fi
 
-            echo "App: $app_label"
+            echo "App: $app"
+            echo "Description: $description"
             echo "Version: $version"
             echo "Signature: Valid"
             echo "Certificate SHA-256: $fingerprint"
 
-            # Generate download URL
+            # Direct APK download link
             download_url="https://github.com/${GITHUB_REPOSITORY}/raw/${GITHUB_REF_NAME}/${apk}"
 
-            # Generate HTML card
-            # Escape values before inserting them into HTML.
-            python3 - \
-              "$APK_HTML" \
-              "$app_label" \
+            # Generate README table row
+            printf '| %s | %s | %s | `%s` | [⬇️ Download](%s) |\n' \
+              "$app" \
               "$description" \
               "$version" \
               "$fingerprint" \
-              "$download_url" <<'PY'
-          import html
-          import pathlib
-          import sys
-
-          output = pathlib.Path(sys.argv[1])
-
-          app = html.escape(sys.argv[2])
-          description = html.escape(sys.argv[3])
-          version = html.escape(sys.argv[4])
-          fingerprint = html.escape(sys.argv[5])
-          download_url = html.escape(sys.argv[6], quote=True)
-
-          card = f"""
-          <div class="apk-card">
-            <h3>{app}</h3>
-            <p>{description}</p>
-            <p><strong>Version:</strong> {version}</p>
-            <p>
-              <a href="{download_url}">⬇️ Download APK</a>
-            </p>
-            <details>
-              <summary>Signature details</summary>
-              <p><code>{fingerprint}</code></p>
-            </details>
-          </div>
-          """
-
-          with output.open("a", encoding="utf-8") as file:
-              file.write(card)
-          PY
-
+              "$download_url" >> "$APK_TABLE"
           done
 
           # Stop if any APK failed verification
@@ -266,8 +267,6 @@ jobs:
             echo "::error::One or more APKs failed verification."
             exit 1
           fi
-
-          echo "</div>" >> "$APK_HTML"
 
           # Generate GitHub Actions summary
           {
@@ -300,15 +299,14 @@ jobs:
 
           cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
 
-          # Update README cards
-          python3 - "$APK_HTML" <<'PY'
+          # Update README table between markers
+          python3 - "$APK_TABLE" <<'PY'
           import pathlib
           import sys
 
           readme = pathlib.Path("README.md")
-          cards = pathlib.Path(sys.argv[1]).read_text().rstrip()
-
-          text = readme.read_text()
+          table = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").rstrip()
+          text = readme.read_text(encoding="utf-8")
 
           start = "<!-- APK-TABLE-START -->"
           end = "<!-- APK-TABLE-END -->"
@@ -325,16 +323,16 @@ jobs:
               before
               + start
               + "\n"
-              + cards
+              + table
               + "\n"
               + end
               + after
           )
 
-          readme.write_text(updated)
+          readme.write_text(updated, encoding="utf-8")
           PY
 
-      # 6. Commit README changes
+      # 7. Commit README changes
       - name: Commit README changes
         shell: bash
         run: |
@@ -350,7 +348,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "docs: update verified APK downloads"
-
+          git commit -m "docs: update verified APK download table"
           git push origin "HEAD:${GITHUB_REF_NAME}"
-
