@@ -11,14 +11,86 @@ A collection of Android apps built with curiosity, open-source tools, and a litt
 All APKs are signed. Download links point directly to the APK files in the `apks/` folder. GitHub Actions verifies each APK, extracts its app version and signer SHA-256 fingerprint, and automatically updates this table.
 
 <!-- APK-TABLE-START -->
-| App | Description | Version | Signing certificate SHA-256 | Download |
-|---|---|---|---|---|
-| Fitsteps-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/Fitsteps-release-signed.apk) |
-| RandomWords-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/RandomWords-release-signed.apk) |
-| SanFit-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/SanFit-release-signed.apk) |
-| FitHR | Heart-rate companion and monitoring tools. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/fithr-release-signed.apk) |
-| SanCraft | Create and customize quote/kavithai images. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/sancraft-release-signed.apk) |
-| Tamil SMS | Tamil words and message inspiration. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/tamilsms-release-signed.apk) |
+<div class="apk-grid">
+
+<div class="apk-card">
+  <h3>FitSteps</h3>
+  <p>Android application.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/Fitsteps-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+
+<div class="apk-card">
+  <h3>Random Words</h3>
+  <p>Android application.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/RandomWords-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+
+<div class="apk-card">
+  <h3>SanFit</h3>
+  <p>Android application.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/SanFit-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+
+<div class="apk-card">
+  <h3>fithr</h3>
+  <p>Heart-rate companion and monitoring tools.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/fithr-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+
+<div class="apk-card">
+  <h3>SanCraft</h3>
+  <p>Create and customize quote and kavithai images.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/sancraft-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+
+<div class="apk-card">
+  <h3>Tamil SMS</h3>
+  <p>Tamil words and message inspiration.</p>
+  <p><strong>Version:</strong> 1.0.0</p>
+  <p>
+    <a href="https://github.com/mskian/vibe-coded-apps/raw/main/apks/tamilsms-release-signed.apk">⬇️ Download APK</a>
+  </p>
+  <details>
+    <summary>Signature details</summary>
+    <p><code>dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6</code></p>
+  </details>
+</div>
+</div>
 <!-- APK-TABLE-END -->
 
 ### 🔑 Verify the signing key
