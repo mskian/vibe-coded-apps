@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   verify-and-update:
-    name: Verify APKs and generate README table
+    name: Verify APKs and generate README list
     runs-on: ubuntu-latest
 
     steps:
@@ -105,8 +105,8 @@ jobs:
           print(f"Validated descriptions for {len(data)} apps.")
           PY
 
-      # 6. Verify APK signatures and generate README table
-      - name: Verify APKs and generate README table
+      # 6. Verify APK signatures and generate README list
+      - name: Verify APKs and generate README list
         shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
@@ -114,7 +114,6 @@ jobs:
           set -euo pipefail
 
           shopt -s nullglob
-
           apks=(apks/*.apk)
 
           if (( ${#apks[@]} == 0 )); then
@@ -122,17 +121,16 @@ jobs:
             exit 1
           fi
 
-          APK_TABLE="$RUNNER_TEMP/apk-table.md"
+          APK_LIST="$RUNNER_TEMP/apk-list.md"
           SUMMARY="$RUNNER_TEMP/apk-summary.md"
+          METADATA="$RUNNER_TEMP/apk-metadata.json"
 
           EXPECTED="${EXPECTED_CERT_SHA256:-}"
           EXPECTED="${EXPECTED//:/}"
           EXPECTED="${EXPECTED// /}"
           EXPECTED="${EXPECTED,,}"
 
-          echo "| App | Description | Version | Signing certificate SHA-256 | Download |" > "$APK_TABLE"
-          echo "|---|---|---|---|---|" >> "$APK_TABLE"
-
+          printf '[]\n' > "$METADATA"
           failed=0
 
           for apk in "${apks[@]}"; do
@@ -143,7 +141,7 @@ jobs:
             echo "Verifying: $filename"
             echo "========================================"
 
-            # App name mapping
+            # Map APK filename to app name
             case "$filename" in
               fithr-release-signed.apk)
                 app="FitHR"
@@ -168,8 +166,7 @@ jobs:
                 ;;
             esac
 
-            # Load description from app-descriptions.json.
-            # Use a default description if the app is not listed.
+            # Load description from app-descriptions.json
             description="$(
               python3 - "$app" <<'PY'
           import json
@@ -244,22 +241,37 @@ jobs:
               continue
             fi
 
+            download_url="https://github.com/${GITHUB_REPOSITORY}/raw/${GITHUB_REF_NAME}/${apk}"
+
             echo "App: $app"
             echo "Description: $description"
             echo "Version: $version"
             echo "Signature: Valid"
             echo "Certificate SHA-256: $fingerprint"
 
-            # Direct APK download link
-            download_url="https://github.com/${GITHUB_REPOSITORY}/raw/${GITHUB_REF_NAME}/${apk}"
+            # Store verified app metadata for README and summary generation
+            python3 - "$METADATA" "$app" "$description" "$version" "$fingerprint" "$download_url" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
 
-            # Generate README table row
-            printf '| %s | %s | %s | `%s` | [⬇️ Download](%s) |\n' \
-              "$app" \
-              "$description" \
-              "$version" \
-              "$fingerprint" \
-              "$download_url" >> "$APK_TABLE"
+          metadata_path = Path(sys.argv[1])
+          app, description, version, fingerprint, download_url = sys.argv[2:]
+
+          entries = json.loads(metadata_path.read_text(encoding="utf-8"))
+          entries.append({
+              "app": app,
+              "description": description,
+              "version": version,
+              "fingerprint": fingerprint,
+              "download_url": download_url
+          })
+
+          metadata_path.write_text(
+              json.dumps(entries, ensure_ascii=False, indent=2),
+              encoding="utf-8"
+          )
+          PY
           done
 
           # Stop if any APK failed verification
@@ -268,44 +280,58 @@ jobs:
             exit 1
           fi
 
-          # Generate GitHub Actions summary
-          {
-            echo "## APK signature verification"
-            echo ""
-            echo "All APK signatures are valid."
-            echo ""
-            echo "| APK | Version | Certificate SHA-256 |"
-            echo "|---|---|---|"
+          # Generate README list and Actions summary
+          python3 - "$METADATA" "$APK_LIST" "$SUMMARY" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
 
-            for apk in "${apks[@]}"; do
-              filename="$(basename "$apk")"
+          metadata_path = Path(sys.argv[1])
+          list_path = Path(sys.argv[2])
+          summary_path = Path(sys.argv[3])
 
-              version="$(
-                "$AAPT" dump badging "$apk" 2>/dev/null |
-                sed -n "s/.*versionName='\([^']*\)'.*/\1/p" |
-                head -n 1
-              )"
+          apps = json.loads(metadata_path.read_text(encoding="utf-8"))
 
-              fingerprint="$(
-                "$APKSIGNER" verify --print-certs "$apk" 2>/dev/null |
-                sed -n \
-                  's/^Signer #1 certificate SHA-256 digest: //p' |
-                head -n 1
-              )"
+          readme_lines = []
+          summary_lines = [
+              "## APK signature verification",
+              "",
+              "All APK signatures are valid.",
+              "",
+              "| APK | Version | Certificate SHA-256 |",
+              "|---|---|---|"
+          ]
 
-              echo "| $filename | ${version:-unknown} | \`$fingerprint\` |"
-            done
-          } > "$SUMMARY"
+          for item in apps:
+              readme_lines.extend([
+                  f"### {item['app']}",
+                  "",
+                  item["description"],
+                  "",
+                  f"- **Version:** `{item['version']}`",
+                  f"- **Signing certificate SHA-256:** `{item['fingerprint']}`",
+                  f"- **Download:** [⬇️ Download APK]({item['download_url']})",
+                  ""
+              ])
+
+              summary_lines.append(
+                  f"| {item['app']} | {item['version']} | "
+                  f"`{item['fingerprint']}` |"
+              )
+
+          list_path.write_text("\n".join(readme_lines).rstrip() + "\n", encoding="utf-8")
+          summary_path.write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
+          PY
 
           cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
 
-          # Update README table between markers
-          python3 - "$APK_TABLE" <<'PY'
+          # Update README list between markers
+          python3 - "$APK_LIST" <<'PY'
           import pathlib
           import sys
 
           readme = pathlib.Path("README.md")
-          table = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").rstrip()
+          app_list = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").rstrip()
           text = readme.read_text(encoding="utf-8")
 
           start = "<!-- APK-TABLE-START -->"
@@ -322,9 +348,9 @@ jobs:
           updated = (
               before
               + start
-              + "\n"
-              + table
-              + "\n"
+              + "\n\n"
+              + app_list
+              + "\n\n"
               + end
               + after
           )
@@ -348,5 +374,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "docs: update verified APK download table"
+          git commit -m "docs: update verified APK download list"
           git push origin "HEAD:${GITHUB_REF_NAME}"
