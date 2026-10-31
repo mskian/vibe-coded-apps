@@ -78,22 +78,22 @@ jobs:
             # Match APK filenames without case sensitivity.
             case "$lower_filename" in
               fithr-release-signed.apk)
-                app="FitHR"
+                app="💓 FitHR"
                 ;;
               sancraft-release-signed.apk)
-                app="SanCraft"
+                app="🎨 SanCraft"
                 ;;
               randomwords-release-signed.apk)
-                app="Random Words"
+                app="📚 Random Words"
                 ;;
               tamilsms-release-signed.apk)
-                app="Tamil SMS"
+                app="💬 Tamil SMS"
                 ;;
               fitsteps-release-signed.apk)
-                app="Fitsteps"
+                app="👟 Fitsteps"
                 ;;
               sanfit-release-signed.apk)
-                app="SanFit"
+                app="❤️ SanFit"
                 ;;
               *)
                 echo "::error::No app-name mapping configured for APK: $filename"
@@ -101,8 +101,10 @@ jobs:
                 ;;
             esac
 
+            description_key="${app#* }"
+
             description="$(
-              python3 - "$app" <<'PY'
+              python3 - "$description_key" <<'PY'
           import json
           import sys
 
@@ -123,7 +125,7 @@ jobs:
           print(description.strip())
           PY
             )" || {
-              echo "::error::Could not load description for '$app' from app-descriptions.json"
+              echo "::error::Could not load description for '$description_key' from app-descriptions.json"
               exit 1
             }
 
@@ -163,11 +165,14 @@ jobs:
               fi
             fi
 
+            apk_sha256="$(sha256sum "$apk" | awk '{print toupper($1)}')"
+
             APK_FILE="$filename" \
             APP_NAME="$app" \
             APP_DESCRIPTION="$description" \
             APP_VERSION="$version_name" \
             CERT_SHA256="$cert_sha256" \
+            APK_SHA256="$apk_sha256" \
             python3 - <<'PY' >> /tmp/apk-results.jsonl
           import json
           import os
@@ -177,7 +182,8 @@ jobs:
               "name": os.environ["APP_NAME"],
               "description": os.environ["APP_DESCRIPTION"],
               "version": os.environ["APP_VERSION"],
-              "sha256": os.environ["CERT_SHA256"],
+              "cert_sha256": os.environ["CERT_SHA256"],
+              "apk_sha256": os.environ["APK_SHA256"],
           }
 
           print(json.dumps(record, ensure_ascii=False))
@@ -210,7 +216,8 @@ jobs:
                   record["description"],
                   "",
                   f"- [Download APK](apks/{record['file']})",
-                  f"- **Signing certificate SHA-256:** `{record['sha256']}`",
+                  f"- **Signing certificate SHA-256:** `{record['cert_sha256']}`",
+                  f"- **APK SHA-256:** `{record['apk_sha256']}`",
                   "",
               ])
 
