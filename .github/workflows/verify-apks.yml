@@ -1,0 +1,83 @@
+name: Verify APK signatures
+
+on:
+  push:
+    paths:
+      - 'apks/**/*.apk'
+      - '.github/workflows/verify-apks.yml'
+  pull_request:
+    paths:
+      - 'apks/**/*.apk'
+      - '.github/workflows/verify-apks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android build tools
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
+          echo "$ANDROID_HOME/build-tools/35.0.0" >> "$GITHUB_PATH"
+
+      - name: Verify all APKs and report signer fingerprints
+        shell: bash
+        env:
+          EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          apks=(apks/*.apk)
+          if (( ${#apks[@]} == 0 )); then
+            echo 'No APK files found in apks/' >&2
+            exit 1
+          fi
+          failed=0
+          {
+            echo '## APK signature verification'
+            echo '| APK | Signature | SHA-256 signer certificate |'
+            echo '|---|---|---|'
+          } >> "$GITHUB_STEP_SUMMARY"
+          for apk in "${apks[@]}"; do
+            echo "Checking $apk"
+            if ! apksigner verify --verbose --print-certs "$apk" > signer.txt 2>&1; then
+              cat signer.txt
+              echo "❌ Signature verification failed: $apk" >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+              continue
+            fi
+            fingerprint=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' signer.txt | head -n1 | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
+            if [[ -z "$fingerprint" ]]; then
+              cat signer.txt
+              echo "❌ Could not read signer fingerprint: $apk" >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+              continue
+            fi
+            printf '| `%s` | ✅ Valid | `%s` |\n' "$(basename "$apk")" "$fingerprint" >> "$GITHUB_STEP_SUMMARY"
+            if [[ -n "${EXPECTED_CERT_SHA256:-}" ]]; then
+              expected=$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
+              if [[ "$fingerprint" != "$expected" ]]; then
+                echo "❌ Signer mismatch for $apk" >&2
+                failed=1
+              fi
+            fi
+          done
+          if [[ -z "${EXPECTED_CERT_SHA256:-}" ]]; then
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo '> ℹ️ Set repository variable `EXPECTED_CERT_SHA256` to enforce a trusted signer match.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$failed"
