@@ -1,3 +1,4 @@
+
 name: Verify APKs and Update README
 
 on:
@@ -19,36 +20,28 @@ concurrency:
 
 jobs:
   verify-and-update:
-    name: Verify APKs and generate README table
+    name: Verify APKs and generate README cards
     runs-on: ubuntu-latest
 
     steps:
-      # --------------------------------------------------
       # 1. Checkout repository
-      # --------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      # --------------------------------------------------
       # 2. Set up Java
-      # --------------------------------------------------
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
-      # --------------------------------------------------
       # 3. Set up Android SDK
-      # --------------------------------------------------
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      # --------------------------------------------------
       # 4. Install Android Build Tools
-      # --------------------------------------------------
       - name: Install Android Build Tools
         shell: bash
         run: |
@@ -76,16 +69,13 @@ jobs:
           "$APKSIGNER" version
           "$AAPT" version
 
-      # --------------------------------------------------
-      # 5. Verify APK signatures and generate README table
-      # --------------------------------------------------
-      - name: Verify APKs and generate README table
+      # 5. Verify APKs and generate README cards
+      - name: Verify APKs and generate README cards
         shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
         run: |
           set -euo pipefail
-
           shopt -s nullglob
 
           apks=(apks/*.apk)
@@ -95,7 +85,7 @@ jobs:
             exit 1
           fi
 
-          APK_TABLE="$RUNNER_TEMP/apk-table.md"
+          APK_HTML="$RUNNER_TEMP/apk-cards.html"
           SUMMARY="$RUNNER_TEMP/apk-summary.md"
 
           EXPECTED="${EXPECTED_CERT_SHA256:-}"
@@ -103,10 +93,12 @@ jobs:
           EXPECTED="${EXPECTED// /}"
           EXPECTED="${EXPECTED,,}"
 
-          echo "| App | Description | Version | Signing certificate SHA-256 | Download |" > "$APK_TABLE"
-          echo "|---|---|---|---|---|" >> "$APK_TABLE"
-
           failed=0
+
+          # Start responsive app card layout
+          cat > "$APK_HTML" <<'HTML'
+          <div class="apk-grid">
+          HTML
 
           for apk in "${apks[@]}"; do
             filename="$(basename "$apk")"
@@ -116,9 +108,7 @@ jobs:
             echo "Verifying: $filename"
             echo "========================================"
 
-            # ----------------------------------------------
             # App metadata
-            # ----------------------------------------------
             case "$filename" in
               fithr-release-signed.apk)
                 app="FitHR"
@@ -126,7 +116,7 @@ jobs:
                 ;;
               sancraft-release-signed.apk)
                 app="SanCraft"
-                description="Create and customize quote/kavithai images."
+                description="Create and customize quote and kavithai images."
                 ;;
               randomwords-release-signed.apk)
                 app="Random Words"
@@ -150,10 +140,9 @@ jobs:
                 ;;
             esac
 
-            # ----------------------------------------------
-            # Extract APK version
-            # ----------------------------------------------
+            # Extract APK metadata
             version="unknown"
+            app_label="$app"
 
             if "$AAPT" dump badging "$apk" \
                 > "$RUNNER_TEMP/badging.txt" 2>/dev/null; then
@@ -165,14 +154,23 @@ jobs:
                 head -n 1
               )"
 
+              extracted_label="$(
+                sed -n \
+                  "s/^application-label:'\(.*\)'$/\1/p" \
+                  "$RUNNER_TEMP/badging.txt" |
+                head -n 1
+              )"
+
               if [[ -n "$extracted_version" ]]; then
                 version="$extracted_version"
               fi
+
+              if [[ -n "$extracted_label" ]]; then
+                app_label="$extracted_label"
+              fi
             fi
 
-            # ----------------------------------------------
             # Verify APK signature
-            # ----------------------------------------------
             signer_file="$RUNNER_TEMP/signer.txt"
 
             if ! "$APKSIGNER" verify \
@@ -181,16 +179,13 @@ jobs:
                 "$apk" > "$signer_file" 2>&1; then
 
               cat "$signer_file"
-
               echo "::error::APK signature verification failed: $filename"
 
               failed=1
               continue
             fi
 
-            # ----------------------------------------------
             # Extract SHA-256 certificate fingerprint
-            # ----------------------------------------------
             fingerprint="$(
               sed -n \
                 's/^Signer #1 certificate SHA-256 digest: //p' \
@@ -202,17 +197,13 @@ jobs:
 
             if [[ -z "$fingerprint" ]]; then
               echo "::error::Could not extract certificate fingerprint: $filename"
-
               failed=1
               continue
             fi
 
-            # ----------------------------------------------
             # Optional certificate pinning
-            # ----------------------------------------------
             if [[ -n "$EXPECTED" && "$fingerprint" != "$EXPECTED" ]]; then
               echo "::error::Certificate fingerprint mismatch: $filename"
-
               echo "Expected: $EXPECTED"
               echo "Actual:   $fingerprint"
 
@@ -220,38 +211,65 @@ jobs:
               continue
             fi
 
+            echo "App: $app_label"
             echo "Version: $version"
             echo "Signature: Valid"
             echo "Certificate SHA-256: $fingerprint"
 
-            # ----------------------------------------------
-            # Generate download link
-            # ----------------------------------------------
+            # Generate download URL
             download_url="https://github.com/${GITHUB_REPOSITORY}/raw/${GITHUB_REF_NAME}/${apk}"
 
-            # ----------------------------------------------
-            # Generate README table row
-            # ----------------------------------------------
-            printf '| %s | %s | %s | `%s` | [⬇️ Download](%s) |\n' \
-              "$app" \
+            # Generate HTML card
+            # Escape values before inserting them into HTML.
+            python3 - \
+              "$APK_HTML" \
+              "$app_label" \
               "$description" \
               "$version" \
               "$fingerprint" \
-              "$download_url" >> "$APK_TABLE"
+              "$download_url" <<'PY'
+          import html
+          import pathlib
+          import sys
+
+          output = pathlib.Path(sys.argv[1])
+
+          app = html.escape(sys.argv[2])
+          description = html.escape(sys.argv[3])
+          version = html.escape(sys.argv[4])
+          fingerprint = html.escape(sys.argv[5])
+          download_url = html.escape(sys.argv[6], quote=True)
+
+          card = f"""
+          <div class="apk-card">
+            <h3>{app}</h3>
+            <p>{description}</p>
+            <p><strong>Version:</strong> {version}</p>
+            <p>
+              <a href="{download_url}">⬇️ Download APK</a>
+            </p>
+            <details>
+              <summary>Signature details</summary>
+              <p><code>{fingerprint}</code></p>
+            </details>
+          </div>
+          """
+
+          with output.open("a", encoding="utf-8") as file:
+              file.write(card)
+          PY
 
           done
 
-          # ----------------------------------------------
           # Stop if any APK failed verification
-          # ----------------------------------------------
           if (( failed != 0 )); then
             echo "::error::One or more APKs failed verification."
             exit 1
           fi
 
-          # ----------------------------------------------
+          echo "</div>" >> "$APK_HTML"
+
           # Generate GitHub Actions summary
-          # ----------------------------------------------
           {
             echo "## APK signature verification"
             echo ""
@@ -282,15 +300,13 @@ jobs:
 
           cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
 
-          # ----------------------------------------------
-          # Update README table
-          # ----------------------------------------------
-          python3 - "$APK_TABLE" <<'PY'
+          # Update README cards
+          python3 - "$APK_HTML" <<'PY'
           import pathlib
           import sys
 
           readme = pathlib.Path("README.md")
-          table = pathlib.Path(sys.argv[1]).read_text().rstrip()
+          cards = pathlib.Path(sys.argv[1]).read_text().rstrip()
 
           text = readme.read_text()
 
@@ -309,7 +325,7 @@ jobs:
               before
               + start
               + "\n"
-              + table
+              + cards
               + "\n"
               + end
               + after
@@ -318,9 +334,7 @@ jobs:
           readme.write_text(updated)
           PY
 
-      # --------------------------------------------------
       # 6. Commit README changes
-      # --------------------------------------------------
       - name: Commit README changes
         shell: bash
         run: |
@@ -336,6 +350,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "docs: update verified APK download table"
+          git commit -m "docs: update verified APK downloads"
 
           git push origin "HEAD:${GITHUB_REF_NAME}"
+
