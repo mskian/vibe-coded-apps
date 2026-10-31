@@ -8,26 +8,19 @@ on:
       - "apks/**"
       - "app-descriptions.json"
       - ".github/workflows/verify-apks.yml"
-
+      - "README.md"
   workflow_dispatch:
 
 permissions:
   contents: write
 
-concurrency:
-  group: verify-and-update-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   verify-and-update:
-    name: Verify APKs and generate README list
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -38,98 +31,52 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      - name: Install Android Build Tools
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          sdkmanager --install "build-tools;35.0.0"
-
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.0"
-          APKSIGNER="$BUILD_TOOLS/apksigner"
-          AAPT="$BUILD_TOOLS/aapt"
-
-          if [[ ! -x "$APKSIGNER" ]]; then
-            echo "::error::apksigner was not installed"
-            exit 1
-          fi
-
-          if [[ ! -x "$AAPT" ]]; then
-            echo "::error::aapt was not installed"
-            exit 1
-          fi
-
-          echo "APKSIGNER=$APKSIGNER" >> "$GITHUB_ENV"
-          echo "AAPT=$AAPT" >> "$GITHUB_ENV"
-
-          "$APKSIGNER" version
-          "$AAPT" version
+      - name: Install Android build tools
+        run: sdkmanager "build-tools;35.0.0"
 
       - name: Validate app descriptions
-        shell: bash
         run: |
-          set -euo pipefail
+          if [ ! -f app-descriptions.json ]; then
+            echo "::error::app-descriptions.json was not found in the repository root."
+            exit 1
+          fi
 
-          python3 -c '
-          import json
-          from pathlib import Path
-
-          path = Path("app-descriptions.json")
-          if not path.is_file():
-              raise SystemExit("::error::app-descriptions.json was not found in the repository root")
-
-          try:
-              descriptions = json.loads(path.read_text(encoding="utf-8"))
-          except json.JSONDecodeError as error:
-              raise SystemExit(f"Invalid app-descriptions.json: {error}")
-
-          if not isinstance(descriptions, dict):
-              raise SystemExit("app-descriptions.json must contain a JSON object")
-
-          for app, description in descriptions.items():
-              if not isinstance(app, str) or not isinstance(description, str) or not description.strip():
-                  raise SystemExit(f"Invalid description entry for: {app}")
-
-          print(f"Validated {len(descriptions)} app descriptions.")
-          '
+          python3 -m json.tool app-descriptions.json > /dev/null
 
       - name: Verify APKs and generate README list
         shell: bash
         env:
+          APKSIGNER: ${{ env.ANDROID_HOME }}/build-tools/35.0.0/apksigner
+          AAPT: ${{ env.ANDROID_HOME }}/build-tools/35.0.0/aapt
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
         run: |
           set -euo pipefail
-          shopt -s nullglob
 
-          apks=(apks/*.apk)
-
-          if (( ${#apks[@]} == 0 )); then
-            echo "::error::No APK files found in apks/"
+          if [ ! -d apks ]; then
+            echo "::error::The apks directory does not exist."
             exit 1
           fi
 
-          APK_LIST="$RUNNER_TEMP/apk-list.md"
-          SUMMARY="$RUNNER_TEMP/apk-summary.md"
-          METADATA="$RUNNER_TEMP/apk-metadata.json"
+          shopt -s nullglob
+          apk_files=(apks/*.apk)
 
-          EXPECTED="${EXPECTED_CERT_SHA256:-}"
-          EXPECTED="${EXPECTED//:/}"
-          EXPECTED="${EXPECTED// /}"
-          EXPECTED="${EXPECTED,,}"
+          if [ ${#apk_files[@]} -eq 0 ]; then
+            echo "::error::No APK files found in apks/."
+            exit 1
+          fi
 
-          printf '[]\n' > "$METADATA"
-          failed=0
+          : > /tmp/apk-results.jsonl
 
-          for apk in "${apks[@]}"; do
+          for apk in "${apk_files[@]}"; do
             filename="$(basename "$apk")"
+            lower_filename="${filename,,}"
 
-            echo ""
             echo "========================================"
             echo "Verifying: $filename"
             echo "========================================"
 
-            # Map APK filename to the app name used in app-descriptions.json.
-            case "$filename" in
+            # Match APK filenames without case sensitivity.
+            case "$lower_filename" in
               fithr-release-signed.apk)
                 app="FitHR"
                 ;;
@@ -149,207 +96,148 @@ jobs:
                 app="SanFit"
                 ;;
               *)
-                app="${filename%.apk}"
+                echo "::error::No app-name mapping configured for APK: $filename"
+                exit 1
                 ;;
             esac
 
-            # Read the exact matching description. Missing entries fail the workflow.
-            if ! description="$(
-              python3 -c '
+            description="$(
+              python3 - "$app" <<'PY'
           import json
           import sys
-          from pathlib import Path
 
-          app = sys.argv[1]
-          descriptions = json.loads(
-              Path("app-descriptions.json").read_text(encoding="utf-8")
-          )
+          app_name = sys.argv[1]
 
-          description = descriptions.get(app)
+          with open("app-descriptions.json", "r", encoding="utf-8") as file:
+              descriptions = json.load(file)
+
+          description = descriptions.get(app_name)
+
           if not isinstance(description, str) or not description.strip():
-              raise SystemExit(f"Missing or empty description for app: {app}")
+              print(
+                  f"Missing or empty description for app: {app_name}",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
 
-          print(description)
-          ' "$app"
-            )"; then
+          print(description.strip())
+          PY
+            )" || {
               echo "::error::Could not load description for '$app' from app-descriptions.json"
-              failed=1
-              continue
+              exit 1
+            }
+
+            version_name="$("$AAPT" dump badging "$apk" |
+              sed -n "s/.*versionName='\([^']*\)'.*/\1/p" |
+              head -n 1)"
+
+            if [ -z "$version_name" ]; then
+              echo "::error::Could not read version name from $filename"
+              exit 1
             fi
 
-            # Extract APK version
-            version="unknown"
+            "$APKSIGNER" verify --verbose --print-certs "$apk"
 
-            if "$AAPT" dump badging "$apk" \
-                > "$RUNNER_TEMP/badging.txt" 2>/dev/null; then
+            cert_sha256="$(
+              "$APKSIGNER" verify --print-certs "$apk" 2>&1 |
+              sed -n 's/.*Signer #1 certificate SHA-256 digest: //p' |
+              head -n 1 |
+              tr '[:lower:]' '[:upper:]'
+            )"
 
-              extracted_version="$(
-                sed -n \
-                  "s/.*versionName='\([^']*\)'.*/\1/p" \
-                  "$RUNNER_TEMP/badging.txt" |
-                head -n 1
-              )"
+            if [ -z "$cert_sha256" ]; then
+              echo "::error::Could not read signing certificate SHA-256 for $filename"
+              exit 1
+            fi
 
-              if [[ -n "$extracted_version" ]]; then
-                version="$extracted_version"
+            if [ -n "${EXPECTED_CERT_SHA256:-}" ]; then
+              expected_cert="${EXPECTED_CERT_SHA256//:/}"
+              expected_cert="${expected_cert// /}"
+              expected_cert="${expected_cert^^}"
+
+              if [ "$cert_sha256" != "$expected_cert" ]; then
+                echo "::error::Signing certificate mismatch for $filename"
+                echo "Expected: $expected_cert"
+                echo "Found:    $cert_sha256"
+                exit 1
               fi
             fi
 
-            # Verify APK signature
-            signer_file="$RUNNER_TEMP/signer.txt"
-
-            if ! "$APKSIGNER" verify \
-                --verbose \
-                --print-certs \
-                "$apk" > "$signer_file" 2>&1; then
-
-              cat "$signer_file"
-              echo "::error::APK signature verification failed: $filename"
-              failed=1
-              continue
-            fi
-
-            # Extract certificate SHA-256 fingerprint
-            fingerprint="$(
-              sed -n \
-                's/^Signer #1 certificate SHA-256 digest: //p' \
-                "$signer_file" |
-              head -n 1 |
-              tr -d ':' |
-              tr '[:upper:]' '[:lower:]'
-            )"
-
-            if [[ -z "$fingerprint" ]]; then
-              echo "::error::Could not extract certificate fingerprint: $filename"
-              failed=1
-              continue
-            fi
-
-            # Optional certificate pinning
-            if [[ -n "$EXPECTED" && "$fingerprint" != "$EXPECTED" ]]; then
-              echo "::error::Certificate fingerprint mismatch: $filename"
-              echo "Expected: $EXPECTED"
-              echo "Actual:   $fingerprint"
-              failed=1
-              continue
-            fi
-
-            download_url="https://github.com/${GITHUB_REPOSITORY}/raw/${GITHUB_REF_NAME}/${apk}"
-
-            echo "App: $app"
-            echo "Description: $description"
-            echo "Version: $version"
-            echo "Signature: Valid"
-            echo "Certificate SHA-256: $fingerprint"
-
-            # Store verified metadata as JSON.
-            python3 -c '
+            APK_FILE="$filename" \
+            APP_NAME="$app" \
+            APP_DESCRIPTION="$description" \
+            APP_VERSION="$version_name" \
+            CERT_SHA256="$cert_sha256" \
+            python3 - <<'PY' >> /tmp/apk-results.jsonl
           import json
-          import sys
-          from pathlib import Path
+          import os
 
-          metadata_path = Path(sys.argv[1])
-          app, description, version, fingerprint, download_url = sys.argv[2:]
+          record = {
+              "file": os.environ["APK_FILE"],
+              "name": os.environ["APP_NAME"],
+              "description": os.environ["APP_DESCRIPTION"],
+              "version": os.environ["APP_VERSION"],
+              "sha256": os.environ["CERT_SHA256"],
+          }
 
-          entries = json.loads(metadata_path.read_text(encoding="utf-8"))
-          entries.append({
-              "app": app,
-              "description": description,
-              "version": version,
-              "fingerprint": fingerprint,
-              "download_url": download_url
-          })
+          print(json.dumps(record, ensure_ascii=False))
+          PY
 
-          metadata_path.write_text(
-              json.dumps(entries, ensure_ascii=False, indent=2),
-              encoding="utf-8"
-          )
-          ' "$METADATA" "$app" "$description" "$version" "$fingerprint" "$download_url"
+            echo "Verified: $app ($version_name)"
           done
 
-          if (( failed != 0 )); then
-            echo "::error::One or more APKs failed verification."
-            exit 1
-          fi
-
-          # Generate README list and Actions summary.
-          python3 -c '
+          python3 - <<'PY'
           import json
-          import sys
           from pathlib import Path
 
-          apps = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-          list_path = Path(sys.argv[2])
-          summary_path = Path(sys.argv[3])
-
-          readme_lines = []
-          summary_lines = [
-              "## APK signature verification",
-              "",
-              "All APK signatures are valid.",
-              "",
-              "| APK | Version | Certificate SHA-256 |",
-              "|---|---|---|"
+          results_path = Path("/tmp/apk-results.jsonl")
+          records = [
+              json.loads(line)
+              for line in results_path.read_text(encoding="utf-8").splitlines()
+              if line.strip()
           ]
 
-          for item in apps:
-              readme_lines.extend([
-                  f"### {item[\"app\"]}",
+          lines = [
+              "<!-- APK-LIST-START -->",
+              "## Android apps",
+              "",
+          ]
+
+          for record in records:
+              lines.extend([
+                  f"### {record['name']} — v{record['version']}",
                   "",
-                  item["description"],
+                  record["description"],
                   "",
-                  f"- **Version:** `{item[\"version\"]}`",
-                  f"- **Signing certificate SHA-256:** `{item[\"fingerprint\"]}`",
-                  f"- **Download:** [⬇️ Download APK]({item[\"download_url\"]})",
-                  ""
+                  f"- [Download APK](apks/{record['file']})",
+                  f"- **Signing certificate SHA-256:** `{record['sha256']}`",
+                  "",
               ])
 
-              summary_lines.append(
-                  f"| {item[\"app\"]} | {item[\"version\"]} | "
-                  f"`{item[\"fingerprint\"]}` |"
-              )
+          lines.append("<!-- APK-LIST-END -->")
 
-          list_path.write_text(
-              "\n".join(readme_lines).rstrip() + "\n",
-              encoding="utf-8"
+          readme_path = Path("README.md")
+          readme = (
+              readme_path.read_text(encoding="utf-8")
+              if readme_path.exists()
+              else ""
           )
-          summary_path.write_text(
-              "\n".join(summary_lines) + "\n",
-              encoding="utf-8"
-          )
-          ' "$METADATA" "$APK_LIST" "$SUMMARY"
 
-          cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+          start_marker = "<!-- APK-LIST-START -->"
+          end_marker = "<!-- APK-LIST-END -->"
 
-          # Replace the generated section in README.
-          python3 -c '
-          import pathlib
-          import sys
+          if start_marker in readme and end_marker in readme:
+              before, remainder = readme.split(start_marker, 1)
+              _, after = remainder.split(end_marker, 1)
+              updated_readme = before + "\n".join(lines) + after
+          else:
+              updated_readme = readme.rstrip() + "\n\n" + "\n".join(lines) + "\n"
 
-          readme = pathlib.Path("README.md")
-          app_list = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8").rstrip()
-          text = readme.read_text(encoding="utf-8")
-
-          start = "<!-- APK-TABLE-START -->"
-          end = "<!-- APK-TABLE-END -->"
-
-          if start not in text or end not in text:
-              raise SystemExit(
-                  "README is missing APK-TABLE-START or APK-TABLE-END markers"
-              )
-
-          before, remainder = text.split(start, 1)
-          _, after = remainder.split(end, 1)
-
-          updated = before + start + "\n\n" + app_list + "\n\n" + end + after
-          readme.write_text(updated, encoding="utf-8")
-          ' "$APK_LIST"
+          readme_path.write_text(updated_readme, encoding="utf-8")
+          PY
 
       - name: Commit README changes
-        shell: bash
         run: |
-          set -euo pipefail
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
@@ -357,8 +245,7 @@ jobs:
 
           if git diff --cached --quiet; then
             echo "README is already up to date."
-            exit 0
+          else
+            git commit -m "Update verified APK list"
+            git push
           fi
-
-          git commit -m "docs: update verified APK download list"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
