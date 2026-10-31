@@ -11,6 +11,55 @@ A collection of Android apps built with curiosity, open-source tools, and a litt
 All APKs are signed. Download links point directly to the APK files in the `apks/` folder. GitHub Actions verifies each APK, extracts its app version and signer SHA-256 fingerprint, and automatically updates this table.
 
 <!-- APK-TABLE-START -->
+
+### Fitsteps-release-signed
+
+Android application.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/Fitsteps-release-signed.apk)
+
+### RandomWords-release-signed
+
+Android application.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/RandomWords-release-signed.apk)
+
+### SanFit-release-signed
+
+Android application.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/SanFit-release-signed.apk)
+
+### FitHR
+
+Heart-rate companion and monitoring tools.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/fithr-release-signed.apk)
+
+### SanCraft
+
+Create and customize quote and kavithai images.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/sancraft-release-signed.apk)
+
+### Tamil SMS
+
+Tamil words and message inspiration.
+
+- **Version:** `1.0.0`
+- **Signing certificate SHA-256:** `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6`
+- **Download:** [⬇️ Download APK](https://github.com/mskian/vibe-coded-apps/raw/main/apks/tamilsms-release-signed.apk)
+
 <!-- APK-TABLE-END -->
 
 ### 🔑 Verify the signing key
