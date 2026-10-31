@@ -24,24 +24,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      # 2. Set up Java
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
-      # 3. Set up Android SDK
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      # 4. Install Android Build Tools
       - name: Install Android Build Tools
         shell: bash
         run: |
@@ -69,51 +65,42 @@ jobs:
           "$APKSIGNER" version
           "$AAPT" version
 
-      # 5. Validate app descriptions
       - name: Validate app descriptions
         shell: bash
         run: |
           set -euo pipefail
 
-          if [[ ! -f app-descriptions.json ]]; then
-            echo "::error::app-descriptions.json was not found"
-            exit 1
-          fi
-
-          python3 - <<'PY'
+          python3 -c '
           import json
           from pathlib import Path
 
           path = Path("app-descriptions.json")
+          if not path.is_file():
+              raise SystemExit("::error::app-descriptions.json was not found in the repository root")
 
           try:
-              data = json.loads(path.read_text(encoding="utf-8"))
+              descriptions = json.loads(path.read_text(encoding="utf-8"))
           except json.JSONDecodeError as error:
               raise SystemExit(f"Invalid app-descriptions.json: {error}")
 
-          if not isinstance(data, dict):
+          if not isinstance(descriptions, dict):
               raise SystemExit("app-descriptions.json must contain a JSON object")
 
-          for app, description in data.items():
-              if not isinstance(app, str) or not isinstance(description, str):
-                  raise SystemExit(
-                      "Each app description must be a string key and string value"
-                  )
-              if not description.strip():
-                  raise SystemExit(f"Description is empty for app: {app}")
+          for app, description in descriptions.items():
+              if not isinstance(app, str) or not isinstance(description, str) or not description.strip():
+                  raise SystemExit(f"Invalid description entry for: {app}")
 
-          print(f"Validated descriptions for {len(data)} apps.")
-          PY
+          print(f"Validated {len(descriptions)} app descriptions.")
+          '
 
-      # 6. Verify APK signatures and generate README list
       - name: Verify APKs and generate README list
         shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
         run: |
           set -euo pipefail
-
           shopt -s nullglob
+
           apks=(apks/*.apk)
 
           if (( ${#apks[@]} == 0 )); then
@@ -141,7 +128,7 @@ jobs:
             echo "Verifying: $filename"
             echo "========================================"
 
-            # Map APK filename to app name
+            # Map APK filename to the app name used in app-descriptions.json.
             case "$filename" in
               fithr-release-signed.apk)
                 app="FitHR"
@@ -166,9 +153,9 @@ jobs:
                 ;;
             esac
 
-            # Load description from app-descriptions.json
-            description="$(
-              python3 - "$app" <<'PY'
+            # Read the exact matching description. Missing entries fail the workflow.
+            if ! description="$(
+              python3 -c '
           import json
           import sys
           from pathlib import Path
@@ -178,9 +165,17 @@ jobs:
               Path("app-descriptions.json").read_text(encoding="utf-8")
           )
 
-          print(descriptions.get(app, "Android application."))
-          PY
-            )"
+          description = descriptions.get(app)
+          if not isinstance(description, str) or not description.strip():
+              raise SystemExit(f"Missing or empty description for app: {app}")
+
+          print(description)
+          ' "$app"
+            )"; then
+              echo "::error::Could not load description for '$app' from app-descriptions.json"
+              failed=1
+              continue
+            fi
 
             # Extract APK version
             version="unknown"
@@ -210,12 +205,11 @@ jobs:
 
               cat "$signer_file"
               echo "::error::APK signature verification failed: $filename"
-
               failed=1
               continue
             fi
 
-            # Extract SHA-256 certificate fingerprint
+            # Extract certificate SHA-256 fingerprint
             fingerprint="$(
               sed -n \
                 's/^Signer #1 certificate SHA-256 digest: //p' \
@@ -236,7 +230,6 @@ jobs:
               echo "::error::Certificate fingerprint mismatch: $filename"
               echo "Expected: $EXPECTED"
               echo "Actual:   $fingerprint"
-
               failed=1
               continue
             fi
@@ -249,8 +242,8 @@ jobs:
             echo "Signature: Valid"
             echo "Certificate SHA-256: $fingerprint"
 
-            # Store verified app metadata for README and summary generation
-            python3 - "$METADATA" "$app" "$description" "$version" "$fingerprint" "$download_url" <<'PY'
+            # Store verified metadata as JSON.
+            python3 -c '
           import json
           import sys
           from pathlib import Path
@@ -271,26 +264,23 @@ jobs:
               json.dumps(entries, ensure_ascii=False, indent=2),
               encoding="utf-8"
           )
-          PY
+          ' "$METADATA" "$app" "$description" "$version" "$fingerprint" "$download_url"
           done
 
-          # Stop if any APK failed verification
           if (( failed != 0 )); then
             echo "::error::One or more APKs failed verification."
             exit 1
           fi
 
-          # Generate README list and Actions summary
-          python3 - "$METADATA" "$APK_LIST" "$SUMMARY" <<'PY'
+          # Generate README list and Actions summary.
+          python3 -c '
           import json
           import sys
           from pathlib import Path
 
-          metadata_path = Path(sys.argv[1])
+          apps = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
           list_path = Path(sys.argv[2])
           summary_path = Path(sys.argv[3])
-
-          apps = json.loads(metadata_path.read_text(encoding="utf-8"))
 
           readme_lines = []
           summary_lines = [
@@ -304,29 +294,35 @@ jobs:
 
           for item in apps:
               readme_lines.extend([
-                  f"### {item['app']}",
+                  f"### {item[\"app\"]}",
                   "",
                   item["description"],
                   "",
-                  f"- **Version:** `{item['version']}`",
-                  f"- **Signing certificate SHA-256:** `{item['fingerprint']}`",
-                  f"- **Download:** [⬇️ Download APK]({item['download_url']})",
+                  f"- **Version:** `{item[\"version\"]}`",
+                  f"- **Signing certificate SHA-256:** `{item[\"fingerprint\"]}`",
+                  f"- **Download:** [⬇️ Download APK]({item[\"download_url\"]})",
                   ""
               ])
 
               summary_lines.append(
-                  f"| {item['app']} | {item['version']} | "
-                  f"`{item['fingerprint']}` |"
+                  f"| {item[\"app\"]} | {item[\"version\"]} | "
+                  f"`{item[\"fingerprint\"]}` |"
               )
 
-          list_path.write_text("\n".join(readme_lines).rstrip() + "\n", encoding="utf-8")
-          summary_path.write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
-          PY
+          list_path.write_text(
+              "\n".join(readme_lines).rstrip() + "\n",
+              encoding="utf-8"
+          )
+          summary_path.write_text(
+              "\n".join(summary_lines) + "\n",
+              encoding="utf-8"
+          )
+          ' "$METADATA" "$APK_LIST" "$SUMMARY"
 
           cat "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
 
-          # Update README list between markers
-          python3 - "$APK_LIST" <<'PY'
+          # Replace the generated section in README.
+          python3 -c '
           import pathlib
           import sys
 
@@ -345,20 +341,10 @@ jobs:
           before, remainder = text.split(start, 1)
           _, after = remainder.split(end, 1)
 
-          updated = (
-              before
-              + start
-              + "\n\n"
-              + app_list
-              + "\n\n"
-              + end
-              + after
-          )
-
+          updated = before + start + "\n\n" + app_list + "\n\n" + end + after
           readme.write_text(updated, encoding="utf-8")
-          PY
+          ' "$APK_LIST"
 
-      # 7. Commit README changes
       - name: Commit README changes
         shell: bash
         run: |
