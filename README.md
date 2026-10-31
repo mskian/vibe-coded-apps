@@ -12,8 +12,13 @@ All APKs are signed. Download links point directly to the APK files in the `apks
 
 <!-- APK-TABLE-START -->
 | App | Description | Version | Signing certificate SHA-256 | Download |
-|---|---|---:|---|---|
-| App metadata and signing fingerprints are automatically populated by GitHub Actions after APK uploads. | | | | |
+|---|---|---|---|---|
+| Fitsteps-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/Fitsteps-release-signed.apk) |
+| RandomWords-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/RandomWords-release-signed.apk) |
+| SanFit-release-signed | Android application. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/SanFit-release-signed.apk) |
+| FitHR | Heart-rate companion and monitoring tools. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/fithr-release-signed.apk) |
+| SanCraft | Create and customize quote/kavithai images. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/sancraft-release-signed.apk) |
+| Tamil SMS | Tamil words and message inspiration. | 1.0.0 | `dd6fd9ad1630a597207cbc970e0ed8a9a08eafede05bdf97723f3e148f8cdab6` | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/main/apks/tamilsms-release-signed.apk) |
 <!-- APK-TABLE-END -->
 
 ### 🔑 Verify the signing key
