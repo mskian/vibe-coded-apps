@@ -84,3 +84,50 @@ This repository's documentation and release tooling are licensed under the [MIT 
 ## 🙏 Credits
 
 Created by **Santhosh** with help from ChatGPT, Android tooling, and the open-source community. Thanks to everyone who builds and shares free software.
+
+<!-- APK-LIST-START -->
+## Android apps
+
+### Fitsteps — v1.0.0
+
+Analyze your step count and activity data from the past 7 days using Health Connect. Track your daily progress and stay motivated to maintain an active lifestyle.
+
+- [Download APK](apks/Fitsteps-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+### Random Words — v1.0.0
+
+Discover random English words with their definitions and pronunciations. Expand your vocabulary and improve your language skills.
+
+- [Download APK](apks/RandomWords-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+### SanFit — v1.0.0
+
+A heart-rate analytics app designed specifically for Fitbit Air. Monitor your heart-rate data and explore detailed analytics.
+
+- [Download APK](apks/SanFit-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+### FitHR — v1.0.0
+
+A heart-rate companion for monitoring and reviewing heart-rate data.
+
+- [Download APK](apks/fithr-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+### SanCraft — v1.0.0
+
+Create and customize quote and Tamil kavithai images.
+
+- [Download APK](apks/sancraft-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+### Tamil SMS — v1.0.0
+
+Discover Tamil words and find inspiration for messages.
+
+- [Download APK](apks/tamilsms-release-signed.apk)
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+
+<!-- APK-LIST-END -->
