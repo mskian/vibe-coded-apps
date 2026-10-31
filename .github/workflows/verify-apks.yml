@@ -1,16 +1,11 @@
+
 name: Verify APKs and update README
 
 on:
   push:
     paths:
-      - 'apks/**.apk'
-      - '.github/workflows/verify-apks.yml'
-      - 'README.md'
-  pull_request:
-    paths:
-      - 'apks/**.apk'
-      - '.github/workflows/verify-apks.yml'
-      - 'README.md'
+      - "apks/**"
+      - ".github/workflows/verify-apks.yml"
   workflow_dispatch:
 
 permissions:
@@ -19,115 +14,195 @@ permissions:
 jobs:
   verify-and-update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
-
-      - name: Install Android build tools
-        run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
-          echo "$ANDROID_HOME/build-tools/35.0.0" >> "$GITHUB_PATH"
+          java-version: "17"
 
       - name: Verify APKs and generate README table
-        shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
+        shell: bash
         run: |
-          set -uo pipefail
+          set -euo pipefail
+
+          APK_DIR="apks"
+          README="README.md"
+          SUMMARY="$RUNNER_TEMP/apk-summary.md"
+          FAILED=0
+
+          mkdir -p "$APK_DIR"
+
           shopt -s nullglob
-          apks=(apks/*.apk)
-          if (( ${#apks[@]} == 0 )); then
-            echo 'No APK files found in apks/' >&2
+          apks=("$APK_DIR"/*.apk)
+
+          if [[ ${#apks[@]} -eq 0 ]]; then
+            echo "::error::No APK files found in $APK_DIR/"
             exit 1
           fi
 
-          failed=0
-          table=$(mktemp)
-          summary="$RUNNER_TEMP/apk-summary.md"
-          printf '| App | Description | Version | Signing certificate SHA-256 | Download |\n|---|---|---:|---|---|\n' > "$table"
-          printf '## APK signature verification\n\n| APK | Version | Signature | SHA-256 signer certificate |\n|---|---:|---|---|\n' > "$summary"
+          expected="${EXPECTED_CERT_SHA256:-}"
+          expected="${expected//:/}"
+          expected="${expected//[[:space:]]/}"
+          expected="${expected^^}"
 
-          aapt="$ANDROID_HOME/build-tools/35.0.0/aapt"
-          apksigner="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          printf '| App | Description | Version | Signing certificate SHA-256 | Download |\n' > "$SUMMARY"
+          printf '|---|---|---|---|---|\n' >> "$SUMMARY"
+
+          printf '| APK | Version | Signature | SHA-256 signer certificate |\n' >> "$RUNNER_TEMP/signatures.md"
+          printf '|---|---|---|---|\n' >> "$RUNNER_TEMP/signatures.md"
+
           for apk in "${apks[@]}"; do
             filename=$(basename "$apk")
+
             case "$filename" in
-              fithr-release-signed.apk) app='FitHR'; description='Heart-rate companion and monitoring tools.' ;;
-              sancraft-release-signed.apk) app='SanCraft'; description='Create and customize quote/kavithai images.' ;;
-              RandomWords-release-signed.apk) app='Random Words'; description='Discover a random word and its meaning.' ;;
-              tamilsms-release-signed.apk) app='Tamil SMS'; description='Tamil words and message inspiration.' ;;
-              Fitsteps-release-signed.apk) app='Fitsteps'; description='Step tracking and activity tools.' ;;
-              SanFit-release-signed.apk) app='SanFit'; description='Fitness and activity companion.' ;;
-              *) app="${filename%.apk}"; description='Android application.' ;;
+              fithr-release-signed.apk)
+                app="FitHR"
+                description="Heart-rate companion and monitoring tools."
+                ;;
+              sancraft-release-signed.apk)
+                app="SanCraft"
+                description="Create and customize quote/kavithai images."
+                ;;
+              RandomWords-release-signed.apk)
+                app="Random Words"
+                description="Discover a random word and its meaning."
+                ;;
+              tamilsms-release-signed.apk)
+                app="Tamil SMS"
+                description="Tamil words and message inspiration."
+                ;;
+              Fitsteps-release-signed.apk)
+                app="Fitsteps"
+                description="Step tracking and activity tools."
+                ;;
+              SanFit-release-signed.apk)
+                app="SanFit"
+                description="Fitness and activity companion."
+                ;;
+              *)
+                app="${filename%.apk}"
+                description="Android application."
+                ;;
             esac
 
-            version='unknown'
-            if [[ -x "$aapt" ]]; then
-              version=$("$aapt" dump badging "$apk" 2>/dev/null | sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" | head -n1)
-              version=${version:-unknown}
+            echo "Verifying $filename"
+
+            if ! cert_output=$(apksigner verify --verbose --print-certs "$apk" 2>&1); then
+              echo "::error::APK signature verification failed: $filename"
+              echo "$cert_output"
+              FAILED=1
+              continue
             fi
 
-            signer='Unavailable'
-            if "$apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/signer.txt" 2>&1; then
-              fingerprint=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/signer.txt" | head -n1 | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
-              if [[ -n "$fingerprint" ]]; then
-                signer="$fingerprint"
-                signature='✅ Valid'
-                if [[ -n "${EXPECTED_CERT_SHA256:-}" ]]; then
-                  expected=$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
-                  if [[ "$fingerprint" != "$expected" ]]; then
-                    signature='❌ Key mismatch'
-                    failed=1
-                  fi
-                else
-                  signature='✅ Valid (key not pinned)'
-                fi
+            fingerprint=$(
+              printf '%s\n' "$cert_output" |
+              sed -nE \
+                's/.*certificate SHA-256 digest: *([[:xdigit:]: ]+).*/\1/p' |
+              head -n 1 |
+              tr -d '[:space:]:' |
+              tr '[:lower:]' '[:upper:]'
+            )
+
+            if [[ -z "$fingerprint" ]]; then
+              echo "::error::Could not extract certificate fingerprint: $filename"
+              echo "$cert_output"
+              FAILED=1
+              continue
+            fi
+
+            signature="✅ Valid"
+
+            if [[ -n "$expected" ]]; then
+              if [[ "$fingerprint" != "$expected" ]]; then
+                signature="❌ Key mismatch"
+                echo "::error::Signing certificate mismatch: $filename"
+                FAILED=1
               else
-                signature='❌ Fingerprint unavailable'
-                failed=1
+                signature="✅ Valid (trusted key)"
               fi
-            else
-              signature='❌ Invalid/unsigned'
-              failed=1
             fi
 
-            printf '| %s | `%s` | %s | `%s` | [⬇️ Download](https://github.com/%s/raw/refs/heads/%s/%s) |\n' \
-              "$app" "$version" "$description" "$signer" "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$apk" >> "$table"
-            printf '| %s | `%s` | %s | `%s` |\n' "$filename" "$version" "$signature" "$signer" >> "$summary"
+            version="unknown"
+
+            if [[ -x "$ANDROID_HOME/build-tools/35.0.0/aapt" ]]; then
+              version=$(
+                "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$apk" 2>/dev/null |
+                sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" |
+                head -n 1
+              )
+            fi
+
+            version="${version:-unknown}"
+
+            printf '| %s | %s | %s | `%s` |\n' \
+              "$filename" "$version" "$signature" "$fingerprint" \
+              >> "$RUNNER_TEMP/signatures.md"
+
+            printf '| %s | %s | `%s` | `%s` | [⬇️ Download](https://github.com/%s/raw/refs/heads/%s/%s) |\n' \
+              "$app" "$description" "$version" "$fingerprint" \
+              "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME" "$apk" \
+              >> "$SUMMARY"
           done
 
-          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$GITHUB_EVENT_NAME" != pull_request ]]; then
-            python3 - "$table" README.md <<'PY'
-          import pathlib, sys
-          table = pathlib.Path(sys.argv[1]).read_text().rstrip()
-          path = pathlib.Path(sys.argv[2])
-          text = path.read_text()
-          start = '<!-- APK-TABLE-START -->'
-          end = '<!-- APK-TABLE-END -->'
-          if start not in text or end not in text:
-              raise SystemExit('README table markers are missing')
-          before, rest = text.split(start, 1)
-          _, after = rest.split(end, 1)
-          path.write_text(before + start + '\n' + table + '\n' + end + after)
-          PY
-            if [[ -n "$(git status --porcelain README.md)" ]]; then
-              git config user.name github-actions[bot]
-              git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-              git add README.md
-              git commit -m 'chore: update APK versions and signing fingerprints'
-              git push
-            fi
+          if [[ "$FAILED" -ne 0 ]]; then
+            echo "::error::One or more APKs failed verification."
+            exit 1
           fi
 
-          if (( failed )); then
-            echo 'One or more APKs failed signature verification or trusted-key comparison.' >&2
-            exit 1
+          python3 - "$README" "$SUMMARY" "$RUNNER_TEMP/signatures.md" <<'PY'
+          import pathlib
+          import sys
+
+          readme = pathlib.Path(sys.argv[1])
+          summary = pathlib.Path(sys.argv[2]).read_text().rstrip()
+          signatures = pathlib.Path(sys.argv[3]).read_text().rstrip()
+
+          text = readme.read_text()
+
+          start = "<!-- APK-TABLE-START -->"
+          end = "<!-- APK-TABLE-END -->"
+
+          if start not in text or end not in text:
+              raise SystemExit("README table markers are missing")
+
+          before, rest = text.split(start, 1)
+          _, after = rest.split(end, 1)
+
+          new_text = (
+              before + start + "\n" + summary + "\n" +
+              end + after
+          )
+
+          signature_start = "<!-- APK-SIGNATURE-START -->"
+          signature_end = "<!-- APK-SIGNATURE-END -->"
+
+          if signature_start in new_text and signature_end in new_text:
+              before, rest = new_text.split(signature_start, 1)
+              _, after = rest.split(signature_end, 1)
+
+              new_text = (
+                  before + signature_start + "\n" + signatures + "\n" +
+                  signature_end + after
+              )
+
+          readme.write_text(new_text)
+          PY
+
+          if [[ -n "$(git status --porcelain README.md)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore: update APK versions and signing fingerprints"
+            git push
+          else
+            echo "README is already up to date."
           fi
