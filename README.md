@@ -3,22 +3,18 @@
 [![APK Signature Check](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml/badge.svg)](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Apps](https://img.shields.io/badge/APKs-6-blue.svg)](#-available-apps)
-[![Downloads](https://img.shields.io/github/downloads/mskian/vibe-coded-apps/total?label=release%20downloads)](https://github.com/mskian/vibe-coded-apps/releases)
 
 A collection of Android apps built with curiosity, open-source tools, and a little help from AI. During recovery from an accident and a fracture in my right arm, ChatGPT helped me keep learning and vibe-coding these apps. 🩹💻
 
 ## 📥 Available apps
 
-All APKs are signed. Download links point directly to the APK files in the `apks/` folder. GitHub Actions extracts each app version and signer SHA-256 fingerprint and publishes them in its workflow summary. The download badge counts GitHub Release asset downloads; GitHub does not expose per-file raw repository download counts.
+All APKs are signed. Download links point directly to the APK files in the `apks/` folder. GitHub Actions verifies each APK, extracts its app version and signer SHA-256 fingerprint, and automatically updates this table.
 
+<!-- APK-TABLE-START -->
 | App | Description | Version | Signing certificate SHA-256 | Download |
 |---|---|---:|---|---|
-| FitHR | Heart-rate companion and monitoring tools. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/fithr-release-signed.apk) |
-| SanCraft | Create and customize quote/kavithai images. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/sancraft-release-signed.apk) |
-| Random Words | Discover a random word and its meaning. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/RandomWords-release-signed.apk) |
-| Tamil SMS | Tamil words and message inspiration. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/tamilsms-release-signed.apk) |
-| Fitsteps | Step tracking and activity tools. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/Fitsteps-release-signed.apk) |
-| SanFit | Fitness and activity companion. | Extracted by Actions | Published by Actions | [⬇️ Download](https://github.com/mskian/vibe-coded-apps/raw/refs/heads/main/apks/SanFit-release-signed.apk) |
+| App metadata and signing fingerprints are automatically populated by GitHub Actions after APK uploads. | | | | |
+<!-- APK-TABLE-END -->
 
 ### 🔑 Verify the signing key
 

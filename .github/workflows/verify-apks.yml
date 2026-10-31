@@ -1,4 +1,4 @@
-name: Verify APK signatures
+name: Verify APKs and update README
 
 on:
   push:
@@ -12,10 +12,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  verify:
+  verify-and-update:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -29,12 +29,11 @@ jobs:
 
       - name: Install Android build tools
         run: |
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;35.0.0"
           echo "$ANDROID_HOME/build-tools/35.0.0" >> "$GITHUB_PATH"
 
-      - name: Verify all APKs and report signer fingerprints
+      - name: Verify APKs and generate README table
         shell: bash
         env:
           EXPECTED_CERT_SHA256: ${{ vars.EXPECTED_CERT_SHA256 }}
@@ -42,42 +41,66 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           apks=(apks/*.apk)
-          if (( ${#apks[@]} == 0 )); then
-            echo 'No APK files found in apks/' >&2
-            exit 1
-          fi
+          (( ${#apks[@]} > 0 )) || { echo 'No APK files found in apks/' >&2; exit 1; }
           failed=0
+          table=$(mktemp)
+          echo '| App | Description | Version | Signing certificate SHA-256 | Download |' > "$table"
+          echo '|---|---|---:|---|---|' >> "$table"
           {
             echo '## APK signature verification'
-            echo '| APK | Signature | SHA-256 signer certificate |'
-            echo '|---|---|---|'
+            echo '| APK | Version | Signature | SHA-256 signer certificate |'
+            echo '|---|---:|---|---|'
           } >> "$GITHUB_STEP_SUMMARY"
           for apk in "${apks[@]}"; do
-            echo "Checking $apk"
+            filename=$(basename "$apk")
+            case "$filename" in
+              fithr-release-signed.apk) app='FitHR'; description='Heart-rate companion and monitoring tools.' ;;
+              sancraft-release-signed.apk) app='SanCraft'; description='Create and customize quote/kavithai images.' ;;
+              RandomWords-release-signed.apk) app='Random Words'; description='Discover a random word and its meaning.' ;;
+              tamilsms-release-signed.apk) app='Tamil SMS'; description='Tamil words and message inspiration.' ;;
+              Fitsteps-release-signed.apk) app='Fitsteps'; description='Step tracking and activity tools.' ;;
+              SanFit-release-signed.apk) app='SanFit'; description='Fitness and activity companion.' ;;
+              *) app="${filename%.apk}"; description='Android application.' ;;
+            esac
+            version=$(aapt dump badging "$apk" | sed -n "s/^package:.*versionName='\([^']*\)'.*/\1/p" | head -n1)
+            version=${version:-unknown}
             if ! apksigner verify --verbose --print-certs "$apk" > signer.txt 2>&1; then
-              cat signer.txt
-              echo "❌ Signature verification failed: $apk" >> "$GITHUB_STEP_SUMMARY"
-              failed=1
-              continue
+              echo "❌ Signature verification failed: $filename" >> "$GITHUB_STEP_SUMMARY"
+              failed=1; continue
             fi
             fingerprint=$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' signer.txt | head -n1 | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
             if [[ -z "$fingerprint" ]]; then
-              cat signer.txt
-              echo "❌ Could not read signer fingerprint: $apk" >> "$GITHUB_STEP_SUMMARY"
-              failed=1
-              continue
+              echo "❌ Could not read signer fingerprint: $filename" >> "$GITHUB_STEP_SUMMARY"
+              failed=1; continue
             fi
-            printf '| `%s` | ✅ Valid | `%s` |\n' "$(basename "$apk")" "$fingerprint" >> "$GITHUB_STEP_SUMMARY"
+            printf '| %s | `%s` | ✅ Valid | `%s` |\n' "$filename" "$version" "$fingerprint" >> "$GITHUB_STEP_SUMMARY"
             if [[ -n "${EXPECTED_CERT_SHA256:-}" ]]; then
               expected=$(printf '%s' "$EXPECTED_CERT_SHA256" | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')
-              if [[ "$fingerprint" != "$expected" ]]; then
-                echo "❌ Signer mismatch for $apk" >&2
-                failed=1
-              fi
+              [[ "$fingerprint" == "$expected" ]] || { echo "❌ Signer mismatch: $filename" >&2; failed=1; }
             fi
+            url="https://github.com/${GITHUB_REPOSITORY}/raw/refs/heads/${GITHUB_REF_NAME}/apks/${filename}"
+            printf '| %s | %s | `%s` | `%s` | [⬇️ Download](%s) |\n' "$app" "$description" "$version" "$fingerprint" "$url" >> "$table"
           done
-          if [[ -z "${EXPECTED_CERT_SHA256:-}" ]]; then
-            echo '' >> "$GITHUB_STEP_SUMMARY"
-            echo '> ℹ️ Set repository variable `EXPECTED_CERT_SHA256` to enforce a trusted signer match.' >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$GITHUB_EVENT_NAME" != pull_request ]]; then
+            python3 - "$table" README.md <<'PY'
+          import pathlib, sys
+          table = pathlib.Path(sys.argv[1]).read_text().rstrip()
+          path = pathlib.Path(sys.argv[2])
+          text = path.read_text()
+          start = '<!-- APK-TABLE-START -->'
+          end = '<!-- APK-TABLE-END -->'
+          if start not in text or end not in text:
+              raise SystemExit('README table markers are missing')
+          before, rest = text.split(start, 1)
+          _, after = rest.split(end, 1)
+          path.write_text(before + start + '\n' + table + '\n' + end + after)
+          PY
+            if [[ -n "$(git status --porcelain README.md)" ]]; then
+              git config user.name github-actions[bot]
+              git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+              git add README.md
+              git commit -m 'chore: update APK versions and signing fingerprints'
+              git push
+            fi
           fi
           exit "$failed"
