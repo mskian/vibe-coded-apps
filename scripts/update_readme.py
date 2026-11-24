@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify APKs in apks/, inspect build protections, and update README.md."""
+"""Verify APKs in apks/, inspect build protections & permissions, and update README.md."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ def get_build_tool(tool_name: str) -> str:
         return os.environ[env_key]
 
     android_home = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT")
-    build_tools_version = os.environ.get("BUILD_TOOLS_VERSION", "35.0.0")
+    build_tools_version = os.environ.get("BUILD_TOOLS_VERSION", "36.0.0")
     if android_home:
         candidate = Path(android_home) / "build-tools" / build_tools_version / tool_name
         if candidate.exists():
@@ -44,7 +44,13 @@ def run_cmd(cmd: list[str]) -> str:
     return combined
 
 
-def extract_apk_metadata(aapt2: str, apk_path: Path) -> tuple[str, str]:
+def format_permission(perm: str) -> str:
+    """Shorten standard Android permission prefix for cleaner README display."""
+    prefix = "android.permission."
+    return perm[len(prefix):] if perm.startswith(prefix) else perm
+
+
+def extract_apk_metadata(aapt2: str, apk_path: Path) -> tuple[str, str, list[str]]:
     output = run_cmd([aapt2, "dump", "badging", str(apk_path)])
 
     label_match = (
@@ -58,7 +64,16 @@ def extract_apk_metadata(aapt2: str, apk_path: Path) -> tuple[str, str]:
     if not version_match or not version_match.group(1).strip():
         raise RuntimeError(f"Could not read versionName from {apk_path.name}")
 
-    return app_name, version_match.group(1).strip()
+    raw_perms = re.findall(
+        r"^uses-permission(?:-sdk-\d+)?:\s*name='([^']+)'", output, re.MULTILINE
+    )
+    permissions = sorted({
+        format_permission(p.strip())
+        for p in raw_perms
+        if p.strip() and not p.strip().endswith(".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+    })
+
+    return app_name, version_match.group(1).strip(), permissions
 
 
 def verify_and_get_cert_sha256(
@@ -181,10 +196,16 @@ def build_readme_section(records: list[dict[str, object]]) -> str:
             status_badge(bool(rec["is_obfuscated"]), "Obfuscated"),
         ])
 
+        perms = rec["permissions"]
+        perms_line = (
+            ", ".join(f"`{p}`" for p in perms) if isinstance(perms, list) and perms else "None"
+        )
+
         encoded_file = quote(str(rec["file"]))
         lines.extend([
             f"- [Download APK](apks/{encoded_file})",
             f"- **Checks:** {checks_line}",
+            f"- **Permissions:** {perms_line}",
             f"- **Signing certificate SHA-256:** `{rec['cert_sha256']}`",
             f"- **APK SHA-256:** `{rec['apk_sha256']}`",
             "",
@@ -226,7 +247,7 @@ def main() -> int:
 
     for apk_path in apk_files:
         print(f"Verifying: {apk_path.name}")
-        app_name, version = extract_apk_metadata(aapt2, apk_path)
+        app_name, version, permissions = extract_apk_metadata(aapt2, apk_path)
         is_signed, cert_sha256 = verify_and_get_cert_sha256(
             apksigner, apk_path, expected_cert
         )
@@ -241,6 +262,7 @@ def main() -> int:
             "emoji": meta["emoji"],
             "description": meta["description"],
             "version": version,
+            "permissions": permissions,
             "cert_sha256": cert_sha256,
             "apk_sha256": apk_sha256,
             "is_signed": checks["is_signed"],
@@ -252,7 +274,8 @@ def main() -> int:
             f"  OK: {app_name} v{version} | "
             f"{status_badge(checks['is_signed'], 'Signed')} | "
             f"{status_badge(checks['is_r8_minified'], 'R8')} | "
-            f"{status_badge(checks['is_obfuscated'], 'Obfuscated')}"
+            f"{status_badge(checks['is_obfuscated'], 'Obfuscated')} | "
+            f"Permissions: {len(permissions)}"
         )
 
     records.sort(key=lambda r: str(r["name"]).lower())
