@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify APKs in apks/ and update the APK list section in README.md."""
+"""Verify APKs in apks/, inspect build protections, and update README.md."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 from urllib.parse import quote
 
@@ -62,7 +63,7 @@ def extract_apk_metadata(aapt2: str, apk_path: Path) -> tuple[str, str]:
 
 def verify_and_get_cert_sha256(
     apksigner: str, apk_path: Path, expected_cert: str | None
-) -> str:
+) -> tuple[bool, str]:
     output = run_cmd([apksigner, "verify", "--verbose", "--print-certs", str(apk_path)])
 
     cert_match = re.search(
@@ -82,7 +83,47 @@ def verify_and_get_cert_sha256(
                 f"Found:    {cert_sha256}"
             )
 
-    return cert_sha256
+    return True, cert_sha256
+
+
+def inspect_apk_protections(apk_path: Path, is_signed: bool) -> dict[str, bool]:
+    """Inspect APK archive and DEX files for R8 minification and code obfuscation."""
+    is_r8_minified = False
+    is_obfuscated = False
+
+    with zipfile.ZipFile(apk_path, "r") as zf:
+        namelist = zf.namelist()
+        dex_files = [
+            f for f in namelist if f.startswith("classes") and f.endswith(".dex")
+        ]
+
+        # Check DEX compiler markers for R8 (e.g. ~~R8{...})
+        for dex_name in dex_files:
+            dex_bytes = zf.read(dex_name)
+            if b"~~R8" in dex_bytes:
+                is_r8_minified = True
+                break
+
+        # Check for R8 obfuscation / package repackaging signals
+        has_repackaged_services = any(
+            re.match(r"^META-INF/services/[a-z]\.[a-z0-9]{1,3}$", name)
+            for name in namelist
+        )
+        has_flattened_package = any("o/" in name for name in namelist)
+        has_obfuscated_res = any(
+            re.match(r"^res/[a-zA-Z0-9_-]{1,2}\.(xml|png|webp)$", name)
+            for name in namelist
+        )
+
+        if has_repackaged_services or has_flattened_package or has_obfuscated_res:
+            is_obfuscated = True
+            is_r8_minified = True
+
+    return {
+        "is_signed": is_signed,
+        "is_r8_minified": is_r8_minified,
+        "is_obfuscated": is_obfuscated,
+    }
 
 
 def compute_file_sha256(file_path: Path) -> str:
@@ -114,7 +155,11 @@ def load_descriptions() -> dict[str, dict[str, str]]:
     return parsed
 
 
-def build_readme_section(records: list[dict[str, str]]) -> str:
+def status_badge(passed: bool, label: str) -> str:
+    return f"{'✅' if passed else '❌'} {label}"
+
+
+def build_readme_section(records: list[dict[str, object]]) -> str:
     lines = [
         START_MARKER,
         "## Android apps",
@@ -127,12 +172,19 @@ def build_readme_section(records: list[dict[str, str]]) -> str:
         lines.append("")
 
         if rec["description"]:
-            lines.append(rec["description"])
+            lines.append(str(rec["description"]))
             lines.append("")
 
-        encoded_file = quote(rec["file"])
+        checks_line = " · ".join([
+            status_badge(bool(rec["is_signed"]), "Signed"),
+            status_badge(bool(rec["is_r8_minified"]), "R8 Minified"),
+            status_badge(bool(rec["is_obfuscated"]), "Obfuscated"),
+        ])
+
+        encoded_file = quote(str(rec["file"]))
         lines.extend([
             f"- [Download APK](apks/{encoded_file})",
+            f"- **Checks:** {checks_line}",
             f"- **Signing certificate SHA-256:** `{rec['cert_sha256']}`",
             f"- **APK SHA-256:** `{rec['apk_sha256']}`",
             "",
@@ -170,13 +222,16 @@ def main() -> int:
     expected_cert = os.environ.get("EXPECTED_CERT_SHA256", "").strip() or None
     descriptions = load_descriptions()
 
-    records: list[dict[str, str]] = []
+    records: list[dict[str, object]] = []
 
     for apk_path in apk_files:
         print(f"Verifying: {apk_path.name}")
         app_name, version = extract_apk_metadata(aapt2, apk_path)
-        cert_sha256 = verify_and_get_cert_sha256(apksigner, apk_path, expected_cert)
+        is_signed, cert_sha256 = verify_and_get_cert_sha256(
+            apksigner, apk_path, expected_cert
+        )
         apk_sha256 = compute_file_sha256(apk_path)
+        checks = inspect_apk_protections(apk_path, is_signed)
 
         meta = descriptions.get(app_name.lower(), {"description": "", "emoji": ""})
 
@@ -188,10 +243,19 @@ def main() -> int:
             "version": version,
             "cert_sha256": cert_sha256,
             "apk_sha256": apk_sha256,
+            "is_signed": checks["is_signed"],
+            "is_r8_minified": checks["is_r8_minified"],
+            "is_obfuscated": checks["is_obfuscated"],
         })
-        print(f"  OK: {app_name} v{version}")
 
-    records.sort(key=lambda r: r["name"].lower())
+        print(
+            f"  OK: {app_name} v{version} | "
+            f"{status_badge(checks['is_signed'], 'Signed')} | "
+            f"{status_badge(checks['is_r8_minified'], 'R8')} | "
+            f"{status_badge(checks['is_obfuscated'], 'Obfuscated')}"
+        )
+
+    records.sort(key=lambda r: str(r["name"]).lower())
     section = build_readme_section(records)
     update_readme(section)
 
