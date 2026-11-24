@@ -18,6 +18,7 @@ All APKs are signed. Download links point directly to the APK files in the `apks
 Follow live cricket scores on Android.
 
 - [Download APK](apks/Cricket-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `6062ADB36DA62A23A9A1E84F3F4AE932A3EA8D607B2FC90A003CE0C5CDCDD4E3`
 
@@ -26,6 +27,7 @@ Follow live cricket scores on Android.
 Local LAN ESP32 DHT22 temperature and humidity monitor.
 
 - [Download APK](apks/espdht-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `2170682E1608A4A11CF1706AA77BE3E37D8E9262566B18CBFBF912AAE5D2228D`
 
@@ -34,6 +36,7 @@ Local LAN ESP32 DHT22 temperature and humidity monitor.
 Real-time live heart-rate broadcast monitor with a minimal live BPM home screen widget.
 
 - [Download APK](apks/fithr-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `9F40BC2BECE5EDBDA2BC42FDBD41E36D48755F9CE179A9F2C2CCE8A3ED4AFEC1`
 
@@ -42,6 +45,7 @@ Real-time live heart-rate broadcast monitor with a minimal live BPM home screen 
 Analyze your step count and activity data from the past 7 days using Health Connect. Track your daily progress and stay motivated to maintain an active lifestyle.
 
 - [Download APK](apks/fitsteps-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `F6CAADFE10C1DBBEE35FC4823C9209F5304A925B505E1A9F3BD846516896189C`
 
@@ -50,6 +54,7 @@ Analyze your step count and activity data from the past 7 days using Health Conn
 Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.
 
 - [Download APK](apks/KavithaiImages-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `9B54D66624B7BE3FAFD0180FA0FF51B496892294975C279D2712A8DF6D336AEF`
 
@@ -58,6 +63,7 @@ Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.
 n8n webhook trigger client for Android.
 
 - [Download APK](apks/n8nwc-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `35EFA4CBF95FE7A6D95BF317D83F68FCA3FE4B632C5DF627613222E210141C38`
 
@@ -66,6 +72,7 @@ n8n webhook trigger client for Android.
 Privacy-first New Year goals and daily habits tracker.
 
 - [Download APK](apks/newgoals-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `47BBAC9FC90D87326A5943D8D198DEFE685AAA9189244928B4064616D62556E6`
 
@@ -74,6 +81,7 @@ Privacy-first New Year goals and daily habits tracker.
 Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
 
 - [Download APK](apks/OpenWrt-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `D0D27BB845AC09973C9414B3BC592BE2B25A85EB6AA9C3FCACB3A95544A8F052`
 
@@ -82,6 +90,7 @@ Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
 Discover random English words with their definitions and pronunciations from an offline library, complete with a home screen widget.
 
 - [Download APK](apks/RandomWords-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `CE68DC464C99FC4B3A343CA7D1460C62A15F9641E5867CDA6B961291C0EC8D71`
 
@@ -90,6 +99,7 @@ Discover random English words with their definitions and pronunciations from an 
 Create and customize quote and Tamil kavithai images with built-in Tamil typography.
 
 - [Download APK](apks/sancraft-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `08F812FD4B998213BE7042037082FF58F0BC54455AEBFF886A286AC98A856003`
 
@@ -98,6 +108,7 @@ Create and customize quote and Tamil kavithai images with built-in Tamil typogra
 Android management client for Technitium DNS Server with health checks, DNS cache flushing, and query log filtering.
 
 - [Download APK](apks/sandns-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `B33C6BECAF18D215C704439FA7DFDFC9612828F29A2EADEBB24C5E574EBC6390`
 
@@ -106,6 +117,7 @@ Android management client for Technitium DNS Server with health checks, DNS cach
 Privacy-first offline Unicode emoji picker and browser.
 
 - [Download APK](apks/Sanemoji-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `9ECE10237B20085244A47247559EC539F16B371669217BC24E49D5790E8AA819`
 
@@ -114,6 +126,7 @@ Privacy-first offline Unicode emoji picker and browser.
 A heart-rate analytics app synced via Health Connect to monitor heart-rate data and explore detailed analytics.
 
 - [Download APK](apks/sanfit-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `5287B8D7328C6B547DD1E77313CA61BE6856CA8E347234B4A9374BC802A2B356`
 
@@ -122,6 +135,7 @@ A heart-rate analytics app synced via Health Connect to monitor heart-rate data 
 Track your daily step count locally from Google Health Connect with an activity aura ring, hourly breakdown chart, qualification status, and 2-day manual sync.
 
 - [Download APK](apks/StepsLife-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `F67DA6943448F698ABD87CB7E0BF696918459391AEFCD4649A29C8E407AEA78E`
 
@@ -130,6 +144,7 @@ Track your daily step count locally from Google Health Connect with an activity 
 Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complete with a tap-to-refresh home screen widget.
 
 - [Download APK](apks/tamilsms-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `02E04403FE4252219C94585E7AC911317B3730EE16B335155BE9340EE7A79B7E`
 
@@ -138,6 +153,7 @@ Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complet
 Offline-first Material 3 Expressive movies and web series watchlist tracker.
 
 - [Download APK](apks/Watchlist-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `0C569C183E48402FE7BB9EF8A723049400F1A044D2A1780717E098B9E3001470`
 
