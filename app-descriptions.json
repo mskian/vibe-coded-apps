@@ -1,8 +1,18 @@
 {
-  "FitHR": "A heart-rate companion for monitoring and reviewing heart-rate data.",
-  "SanCraft": "Create and customize quote and Tamil kavithai images.",
-  "Random Words": "Discover random English words with their definitions and pronunciations. Expand your vocabulary and improve your language skills.",
-  "Tamil SMS": "Discover Tamil words and find inspiration for messages.",
+  "FitHR": "Real-time live heart-rate broadcast monitor with a minimal live BPM home screen widget.",
+  "SanCraft": "Create and customize quote and Tamil kavithai images with built-in Tamil typography.",
+  "Random Words": "Discover random English words with their definitions and pronunciations from an offline library, complete with a home screen widget.",
+  "Tamil SMS": "Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complete with a tap-to-refresh home screen widget.",
   "Fitsteps": "Analyze your step count and activity data from the past 7 days using Health Connect. Track your daily progress and stay motivated to maintain an active lifestyle.",
-  "SanFit": "A heart-rate analytics app designed specifically for Fitbit Air. Monitor your heart-rate data and explore detailed analytics."
+  "SanFit": "A heart-rate analytics app synced via Health Connect to monitor heart-rate data and explore detailed analytics.",
+  "StepsLife": "Track your daily step count locally from Google Health Connect with an activity aura ring, hourly breakdown chart, qualification status, and 2-day manual sync.",
+  "newgoals": "Privacy-first New Year goals and daily habits tracker.",
+  "n8nwc": "n8n webhook trigger client for Android.",
+  "Cricket": "Follow live cricket scores on Android.",
+  "openwrt": "Material 3 Expressive OpenWrt LuCI RPC router manager for Android.",
+  "Watchlist": "Offline-first Material 3 Expressive movies and web series watchlist tracker.",
+  "Sanemoji": "Privacy-first offline Unicode emoji picker and browser.",
+  "EspDHT": "Local LAN ESP32 DHT22 temperature and humidity monitor.",
+  "SanDNS": "Android management client for Technitium DNS Server with health checks, DNS cache flushing, and query log filtering.",
+  "Kavithai Images": "Browse and view Tamil kavithai images in a clean Material 3 Compose gallery."
 }
