@@ -1,10 +1,9 @@
 # 📱 Santhosh's Android Apps
 
 [![APK Signature Check](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml/badge.svg)](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Apps](https://img.shields.io/badge/APKs-6-blue.svg)](#-available-apps)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
 
-A collection of Android apps built with curiosity, open-source tools, and a little help from AI. During recovery from an accident and a fracture in my right arm, ChatGPT helped me keep learning and vibe-coding these apps. 🩹💻
+A collection of Android apps built with curiosity, open-source tools, and a little help from AI. During recovery from an **accident and a fracture in my right arm**, ChatGPT helped me keep learning and vibe-coding these apps. 🩹💻
 
 ## 📥 Available apps
 
@@ -161,7 +160,7 @@ Offline-first Material 3 Expressive movies and web series watchlist tracker.
 
 ### 🔑 Verify the signing key
 
-The workflow verifies that every APK has a valid Android signature and reports its signer certificate SHA-256 fingerprint. For a trusted-key comparison, configure the repository variable `EXPECTED_CERT_SHA256` with the SHA-256 fingerprint of your known signing certificate (hex characters, optionally colon-separated). The workflow fails if any APK's signer differs. **Never upload your private keystore or its password to this repository.**
+The workflow verifies that every APK has a valid Android signature and reports its signer certificate SHA-256 fingerprint. For a trusted-key comparison.The workflow fails if any APK's signer differs. **Never upload your private keystore or its password to this repository.**  
 
 ## 🔐 Privacy, safety & cost
 
@@ -180,6 +179,4 @@ This repository's documentation and release tooling are licensed under the [MIT 
 
 ## 🙏 Credits
 
-Created by **Santhosh** with help from ChatGPT, Android tooling, and the open-source community. Thanks to everyone who builds and shares free software.
-
-
+Created by **Santhosh** with help from ChatGPT, Gemini, Claude and Android tooling, and the open-source community. Thanks to everyone who builds and shares free software.
