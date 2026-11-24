@@ -3,7 +3,7 @@
 [![APK Signature Check](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml/badge.svg)](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
 
-A collection of Android apps built with curiosity, open-source tools, and a little help from AI. During recovery from an **accident and a fracture in my right arm**, ChatGPT helped me keep learning and vibe-coding these apps. 🩹💻
+A collection of Android apps built with curiosity, open-source tools, and a little help from AI. During recovery from an **accident and a fracture in my right arm**, ChatGPT, Gemini and Claude helped me keep learning and vibe-coding these apps. 🩹💻
 
 ## 📥 Available apps
 
