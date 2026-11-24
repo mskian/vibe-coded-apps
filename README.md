@@ -1,5 +1,8 @@
 # 📱 Santhosh's Android Apps
 
+<img width="2000" height="600" alt="sandy-apps" src="https://github.com/user-attachments/assets/6b80c5a8-045d-446e-b332-d36779f4286a" />  
+
+
 [![APK Signature Check](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml/badge.svg)](https://github.com/mskian/vibe-coded-apps/actions/workflows/verify-apks.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)  
 
