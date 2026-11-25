@@ -61,9 +61,9 @@ Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.
 
 - [Download APK](apks/KavithaiImages-release-signed.apk)
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
-- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`
-- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `CA47A3FB5999C3C625CAC05EAC1E650F5E6008937D73E4C11FE798ED1DDC0EC4`
+- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `com.android.vending.CHECK_LICENSE`
+- **Signing certificate SHA-256:** `C63772E0FCC56FCE37048EABAD8FD5907130E6CC120E96C8E7693A4C9D9E01BC`
+- **APK SHA-256:** `C21FA942DC59440371B7CAFD506B5B8C2F0378F2203204F7426536D8AC7F8B75`
 
 ### n8nwc — v1.3.1
 
@@ -155,7 +155,7 @@ Track your daily step count locally from Google Health Connect with an activity 
 - **Signing certificate SHA-256:** `4488A0320B84CC54999F6926D82A5CFAC169E0580EFC64C82A696F97CB08B00F`
 - **APK SHA-256:** `A5112012D4540149E1D98C99616B3F8241D298D5825A2E80B7970828F4BDFA2B`
 
-### Tamil SMS — v1.2.2
+### Tamil SMS — v1.2.3
 
 Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complete with a tap-to-refresh home screen widget.
 
@@ -163,7 +163,7 @@ Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complet
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `com.android.vending.CHECK_LICENSE`
 - **Signing certificate SHA-256:** `CECF51C058CC81A14568CC5039187804D464F90009B6BCE1AAFE18ED8F439F90`
-- **APK SHA-256:** `2B3B6D11CFE8AF5204DA368FD315DA918EF4B5F520F3B52837F94AA7E46EB2A4`
+- **APK SHA-256:** `A68DF7BC7BC0C0669C34248BB0B4BCB6973B27DE59F1602935991042945E7148`
 
 ### Watchlist — v1.2.1
 
