@@ -55,7 +55,7 @@ Analyze your step count and activity data from the past 7 days using Health Conn
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `F6CAADFE10C1DBBEE35FC4823C9209F5304A925B505E1A9F3BD846516896189C`
 
-### Kavithai Images — v1.1.0
+### Kavithai Images — v1.2.2
 
 Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.
 
@@ -63,7 +63,7 @@ Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `9B54D66624B7BE3FAFD0180FA0FF51B496892294975C279D2712A8DF6D336AEF`
+- **APK SHA-256:** `CA47A3FB5999C3C625CAC05EAC1E650F5E6008937D73E4C11FE798ED1DDC0EC4`
 
 ### n8nwc — v1.3.1
 
@@ -101,9 +101,9 @@ Discover random English words with their definitions and pronunciations from an 
 
 - [Download APK](apks/RandomWords-release-signed.apk)
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
-- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`
-- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `CE68DC464C99FC4B3A343CA7D1460C62A15F9641E5867CDA6B961291C0EC8D71`
+- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `com.android.vending.CHECK_LICENSE`
+- **Signing certificate SHA-256:** `64A1F0A7942D94146717C15F77FAE25C6B896C756B44095B93D8F02740490A0E`
+- **APK SHA-256:** `F74AF8EC8FC5E590460DAA456FCAAEA9D5B70C10CC2D2C20BFB2CE61E57F8C87`
 
 ### SanCraft — v1.2.3
 
@@ -151,9 +151,9 @@ Track your daily step count locally from Google Health Connect with an activity 
 
 - [Download APK](apks/StepsLife-release-signed.apk)
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
-- **Permissions:** `health.READ_STEPS`
-- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `F67DA6943448F698ABD87CB7E0BF696918459391AEFCD4649A29C8E407AEA78E`
+- **Permissions:** `com.android.vending.CHECK_LICENSE`, `health.READ_STEPS`
+- **Signing certificate SHA-256:** `4488A0320B84CC54999F6926D82A5CFAC169E0580EFC64C82A696F97CB08B00F`
+- **APK SHA-256:** `A5112012D4540149E1D98C99616B3F8241D298D5825A2E80B7970828F4BDFA2B`
 
 ### Tamil SMS — v1.2.2
 
@@ -161,9 +161,9 @@ Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complet
 
 - [Download APK](apks/tamilsms-release-signed.apk)
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
-- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`
-- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `02E04403FE4252219C94585E7AC911317B3730EE16B335155BE9340EE7A79B7E`
+- **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `com.android.vending.CHECK_LICENSE`
+- **Signing certificate SHA-256:** `CECF51C058CC81A14568CC5039187804D464F90009B6BCE1AAFE18ED8F439F90`
+- **APK SHA-256:** `2B3B6D11CFE8AF5204DA368FD315DA918EF4B5F520F3B52837F94AA7E46EB2A4`
 
 ### Watchlist — v1.2.1
 
