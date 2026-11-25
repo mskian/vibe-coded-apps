@@ -75,7 +75,7 @@ n8n webhook trigger client for Android.
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `35EFA4CBF95FE7A6D95BF317D83F68FCA3FE4B632C5DF627613222E210141C38`
 
-### newgoals — v1.5.3
+### newgoals — v1.6.1
 
 Privacy-first New Year goals and daily habits tracker.
 
@@ -83,7 +83,7 @@ Privacy-first New Year goals and daily habits tracker.
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `WAKE_LOCK`
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `47BBAC9FC90D87326A5943D8D198DEFE685AAA9189244928B4064616D62556E6`
+- **APK SHA-256:** `D5BBB7519C56557B02FC703417A537E4E10E358616A035389CF79E9A5AA20A98`
 
 ### openwrt — v1.2.0
 
@@ -95,7 +95,7 @@ Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `D0D27BB845AC09973C9414B3BC592BE2B25A85EB6AA9C3FCACB3A95544A8F052`
 
-### Random Words — v1.2.1
+### Random Words — v1.2.2
 
 Discover random English words with their definitions and pronunciations from an offline library, complete with a home screen widget.
 
@@ -103,7 +103,7 @@ Discover random English words with their definitions and pronunciations from an 
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `com.android.vending.CHECK_LICENSE`
 - **Signing certificate SHA-256:** `64A1F0A7942D94146717C15F77FAE25C6B896C756B44095B93D8F02740490A0E`
-- **APK SHA-256:** `F74AF8EC8FC5E590460DAA456FCAAEA9D5B70C10CC2D2C20BFB2CE61E57F8C87`
+- **APK SHA-256:** `18AB9270A25E5A3937B8B93166D8E7A4636BB1C364169A3EBA0E59F83DEF403B`
 
 ### SanCraft — v1.2.3
 
