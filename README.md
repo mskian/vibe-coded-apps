@@ -85,7 +85,7 @@ Privacy-first New Year goals and daily habits tracker.
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `D5BBB7519C56557B02FC703417A537E4E10E358616A035389CF79E9A5AA20A98`
 
-### openwrt — v1.2.0
+### openwrt — v1.3.0
 
 Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
 
@@ -93,7 +93,7 @@ Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `ACCESS_NETWORK_STATE`, `INTERNET`, `USE_BIOMETRIC`
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `D0D27BB845AC09973C9414B3BC592BE2B25A85EB6AA9C3FCACB3A95544A8F052`
+- **APK SHA-256:** `C1D9F5FE5C67E04A731E5B9DF0733CA8825D01F7AE18B183C68DD70ACCC0AB40`
 
 ### Random Words — v1.2.2
 
@@ -165,7 +165,7 @@ Browse offline Tamil Kavithai and Kadhal quotes for message inspiration, complet
 - **Signing certificate SHA-256:** `CECF51C058CC81A14568CC5039187804D464F90009B6BCE1AAFE18ED8F439F90`
 - **APK SHA-256:** `A68DF7BC7BC0C0669C34248BB0B4BCB6973B27DE59F1602935991042945E7148`
 
-### Watchlist — v1.2.1
+### Watchlist — v1.4.1
 
 Offline-first Material 3 Expressive movies and web series watchlist tracker.
 
@@ -173,7 +173,7 @@ Offline-first Material 3 Expressive movies and web series watchlist tracker.
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `USE_BIOMETRIC`
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `0C569C183E48402FE7BB9EF8A723049400F1A044D2A1780717E098B9E3001470`
+- **APK SHA-256:** `B1F3C7A1BF4A57C20D1DD25E9C0E73CD5564831F90B8FA3D82269461CF3B8AF1`
 
 <!-- APK-LIST-END -->
 
