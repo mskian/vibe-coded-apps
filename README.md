@@ -85,6 +85,16 @@ Privacy-first New Year goals and daily habits tracker.
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `D5BBB7519C56557B02FC703417A537E4E10E358616A035389CF79E9A5AA20A98`
 
+### notesvib — v1.0.0
+
+Private Notes and Reminders.
+
+- [Download APK](apks/notesvib-release-signed.apk)
+- **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
+- **Permissions:** `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `USE_BIOMETRIC`, `VIBRATE`
+- **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
+- **APK SHA-256:** `D3B8077EFAA37B1440585C2917213EC9F0F83CE59742B3CF945DB6346ADAB402`
+
 ### openwrt — v1.3.0
 
 Material 3 Expressive OpenWrt LuCI RPC router manager for Android.
