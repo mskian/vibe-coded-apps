@@ -14,5 +14,6 @@
   "Sanemoji": "Privacy-first offline Unicode emoji picker and browser.",
   "EspDHT": "Local LAN ESP32 DHT22 temperature and humidity monitor.",
   "SanDNS": "Android management client for Technitium DNS Server with health checks, DNS cache flushing, and query log filtering.",
-  "Kavithai Images": "Browse and view Tamil kavithai images in a clean Material 3 Compose gallery."
+  "Kavithai Images": "Browse and view Tamil kavithai images in a clean Material 3 Compose gallery.",
+  "notesvib": "Private Notes and Reminders."
 }
