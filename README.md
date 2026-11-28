@@ -45,7 +45,7 @@ Real-time live heart-rate broadcast monitor with a minimal live BPM home screen 
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
 - **APK SHA-256:** `9F40BC2BECE5EDBDA2BC42FDBD41E36D48755F9CE179A9F2C2CCE8A3ED4AFEC1`
 
-### fitnotes — v1.3.1
+### fitnotes — v1.3.2
 
 Offline Android notes & reminders with real Fitbit Air wrist vibrations via Golden Gate BLE—no internet, no cloud, no ads.
 
@@ -53,7 +53,7 @@ Offline Android notes & reminders with real Fitbit Air wrist vibrations via Gold
 - **Checks:** ✅ Signed · ✅ R8 Minified · ✅ Obfuscated
 - **Permissions:** `BLUETOOTH`, `BLUETOOTH_CONNECT`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_CONNECTED_DEVICE`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`
 - **Signing certificate SHA-256:** `DD6FD9AD1630A597207CBC970E0ED8A9A08EAFEDE05BDF97723F3E148F8CDAB6`
-- **APK SHA-256:** `3968F1579BE0816423115170FF45B16E2720EF68DB5C2F7E6BE445BF2FEAEC97`
+- **APK SHA-256:** `953FA2A31BF4D41756C1A93697697CE200F6E04A01FB094E746F3DD52E708EB0`
 
 ### FitSteps — v1.2.0
 
